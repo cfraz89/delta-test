@@ -17,9 +17,9 @@ export class CdkTestStack extends cdk.Stack {
     const testFunc = new NodejsFunction(this, "MyFunction", {
       entry: "lib/lambda-test.ts",
     });
-    const testFunc2 = new NodejsFunction(this, "MyFunction2", {
-      entry: "lib/lambda-test.ts",
-    });
+    // const testFunc2 = new NodejsFunction(this, "MyFunction2", {
+    //   entry: "lib/lambda-test.ts",
+    // });
     const api = new HttpApi(this, "myapi", {});
     api.addRoutes({
       path: "/test",

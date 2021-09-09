@@ -15,6 +15,7 @@
     "@aws-cdk/aws-apigatewayv2": "^1.121.0",
     "@aws-cdk/aws-apigatewayv2-integrations": "^1.121.0",
     "@aws-cdk/aws-lambda-nodejs": "^1.121.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.30.0",
     "@aws-sdk/client-lambda": "^3.29.0",
     "@types/jest": "^26.0.10",
     "@types/libnpmexec": "^2.0.0",
@@ -31,6 +32,7 @@
   },
   "dependencies": {
     "@aws-cdk/core": "1.121.0",
+    "@aws-sdk/client-cloudwatch": "^3.30.0",
     "cowsay2": "^2.0.4",
     "source-map-support": "^0.5.16"
   }

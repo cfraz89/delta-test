@@ -1,6 +1,6 @@
 {
   "CdkTestStack": {
-    "fns": "[{\"name\":\"CdkTestStack-MyFunction3BAA72D1-DctqWM1sIgnp\",\"logicalId\":\"MyFunction3BAA72D1\",\"arn\":\"arn:aws:lambda:ap-southeast-1:725327398152:function:CdkTestStack-MyFunction3BAA72D1-DctqWM1sIgnp\"},{\"name\":\"CdkTestStack-MyFunction2F2A964CA-u2RxMX0BytfH\",\"logicalId\":\"MyFunction2F2A964CA\",\"arn\":\"arn:aws:lambda:ap-southeast-1:725327398152:function:CdkTestStack-MyFunction2F2A964CA-u2RxMX0BytfH\"}]",
+    "fns": "[{\"name\":\"CdkTestStack-MyFunction3BAA72D1-DctqWM1sIgnp\",\"logicalId\":\"MyFunction3BAA72D1\",\"arn\":\"arn:aws:lambda:ap-southeast-1:725327398152:function:CdkTestStack-MyFunction3BAA72D1-DctqWM1sIgnp\"}]",
     "api": "https://ux6q4j56t6.execute-api.ap-southeast-1.amazonaws.com"
   }
 }
