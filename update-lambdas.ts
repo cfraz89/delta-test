@@ -44,7 +44,9 @@ async function tailLogs(fn: Function) {
           .filter((x) => (x.timestamp ?? 0) > lastReceivedTimestamp)
           .map((x) => {
             const matches = x.message
-              ?.matchAll(/^(\d+-\d+-\d+T\d+:\d+:\d+\.\d+Z)\s+\S+\s+\S+\s+(.*)/g)
+              ?.matchAll(
+                /^(\d+-\d+-\d+T\d+:\d+:\d+\.\d+Z)\s+\S+\s+\S+\s+(.*)$/gms
+              )
               .next().value;
             return matches ? { time: matches[1], message: matches[2] } : null;
           })
