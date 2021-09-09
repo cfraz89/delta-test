@@ -6,11 +6,12 @@ import zip from "jszip";
 import { CloudWatchLogs } from "@aws-sdk/client-cloudwatch-logs";
 
 const lambda = new Lambda({});
-const refreshInterval = 1000;
+const refreshInterval = 100;
 interface Stack {
   fns: string;
 }
 interface Function {
+  id: string;
   name: string;
   logicalId: string;
   arn: string;
@@ -41,8 +42,17 @@ async function tailLogs(fn: Function) {
       if (events.events && events.events.length > 0) {
         const recentEvents = events.events
           .filter((x) => (x.timestamp ?? 0) > lastReceivedTimestamp)
-          .map((e) => `${new Date(e.timestamp!).toISOString()} - ${e.message}`);
-        recentEvents?.forEach(console.log);
+          .map((x) => {
+            const matches = x.message
+              ?.matchAll(/^(\d+-\d+-\d+T\d+:\d+:\d+\.\d+Z)\s+\S+\s+\S+\s+(.*)/g)
+              .next().value;
+            return matches ? { time: matches[1], message: matches[2] } : null;
+          })
+          .filter((x) => x);
+        recentEvents?.forEach((e) => {
+          console.log(`${e?.time} ${fn.id}`);
+          console.log(e?.message);
+        });
         lastReceivedTimestamp =
           events.events[events.events.length - 1].timestamp ??
           lastReceivedTimestamp;
@@ -87,6 +97,8 @@ async function synthAndUpload() {
               ZipFile: zipped,
             });
             console.log(response.LastUpdateStatus);
+            console.log("Tailing logs");
+            console.log("---");
             return tailLogs(fn);
           } else {
             console.log("Failed to update");
@@ -102,19 +114,12 @@ async function main() {
   console.log("Performing initial deployment");
   await libnpmexec({ args: ["cdk", "deploy", "-O", "cdk-outputs.json"] });
   console.log("Synthesizing...");
-  // synthAndUpload();
+  synthAndUpload();
   let timeouts: (NodeJS.Timeout | null)[][] = [];
   watch("lib/**/*.ts").on("change", async () => {
     console.log("Change detected, synthesizing...");
     timeouts.forEach((t) => t.forEach((tx) => tx && clearInterval(tx)));
     timeouts = await synthAndUpload();
-  });
-  const stacks = await getStacks();
-  Object.entries(stacks).forEach(async ([stackName, stack]) => {
-    const fns: Function[] = await JSON.parse(stack.fns);
-    fns.forEach(async (fn) => {
-      tailLogs(fn);
-    });
   });
 }
 

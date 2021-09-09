@@ -34,6 +34,7 @@ export class CdkTestStack extends cdk.Stack {
         let f = c as lambda.Function;
         return f.functionArn
           ? {
+              id: f.node.id,
               name: f.functionName,
               logicalId: (f.node.defaultChild as CfnElement).logicalId,
               arn: f.functionArn,
