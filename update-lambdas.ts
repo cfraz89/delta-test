@@ -64,7 +64,7 @@ async function tailLogs(fn: Function) {
 }
 
 async function synthAndUpload() {
-  await libnpmexec({ args: ["cdk", "synth", "-q"] });
+  await libnpmexec({ args: ["cdk", "synth", "-q", ...process.argv.slice(2)] });
   console.log("Uploading lambdas...");
   const stacks = await getStacks();
   return Promise.all(
@@ -114,7 +114,9 @@ async function synthAndUpload() {
 
 async function main() {
   console.log("Performing initial deployment");
-  await libnpmexec({ args: ["cdk", "deploy", "-O", "cdk-outputs.json"] });
+  await libnpmexec({
+    args: ["cdk", "deploy", "-O", "cdk-outputs.json", ...process.argv.slice(2)],
+  });
   console.log("Synthesizing...");
   synthAndUpload();
   let timeouts: (NodeJS.Timeout | null)[][] = [];
