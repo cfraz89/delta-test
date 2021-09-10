@@ -2,7 +2,7 @@
 import "source-map-support/register";
 import * as cdk from "@aws-cdk/core";
 import { CdkTestStack } from "../lib/cdk-test-stack";
-import { resolveEnv } from "./env";
+import { resolveEnv } from "../afterburner/env";
 
 const app = new cdk.App();
 

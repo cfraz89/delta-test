@@ -1,6 +1,0 @@
-{
-  "chrisf-CdkTestStack": {
-    "fns": "[{\"id\":\"MyFunction\",\"name\":\"chrisf-CdkTestStack-MyFunction3BAA72D1-XJtf9UkXHK6M\",\"logicalId\":\"MyFunction3BAA72D1\",\"arn\":\"arn:aws:lambda:ap-southeast-1:725327398152:function:chrisf-CdkTestStack-MyFunction3BAA72D1-XJtf9UkXHK6M\"}]",
-    "api": "https://lju1jk7gua.execute-api.ap-southeast-1.amazonaws.com"
-  }
-}

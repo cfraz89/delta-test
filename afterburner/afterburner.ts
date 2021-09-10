@@ -13,12 +13,14 @@ interface Stack {
 interface Function {
   id: string;
   name: string;
-  logicalId: string;
-  arn: string;
+  path: string;
 }
 
 async function getStacks() {
-  const outputsFile = await fs.readFile("cdk-outputs.json", "utf-8");
+  const outputsFile = await fs.readFile(
+    ".afterburner/cdk-outputs.json",
+    "utf-8"
+  );
   return JSON.parse(outputsFile) as Record<string, Stack>;
 }
 
@@ -68,15 +70,15 @@ async function synthAndUpload() {
   console.log("Uploading lambdas...");
   const stacks = await getStacks();
   return Promise.all(
-    Object.entries(stacks).map(async ([stackName, stack]) => {
-      const resources = await getResources(stackName);
+    Object.values(stacks).map(async (stack) => {
+      if (!stack.fns) {
+        throw new Error("No fns in stack output!");
+      }
       const fns: Function[] = await JSON.parse(stack.fns);
       return Promise.all(
         fns.map(async (fn) => {
           console.log(`Uploading ${fn.name}`);
-          const resource = resources[fn.logicalId];
-          const path = resource.Metadata["aws:asset:path"];
-          const assetPath = `cdk.out/${path}`;
+          const assetPath = `cdk.out/${fn.path}`;
           const assetZip = new zip();
           const assetFilePaths = await fs.readdir(assetPath);
           const assetFiles = await Promise.all(
@@ -114,8 +116,17 @@ async function synthAndUpload() {
 
 async function main() {
   console.log("Performing initial deployment");
+  fs.mkdir(".afterburner", { recursive: true });
   await libnpmexec({
-    args: ["cdk", "deploy", "-O", "cdk-outputs.json", ...process.argv.slice(2)],
+    args: [
+      "cdk",
+      "deploy",
+      "-c",
+      "afterburner=true",
+      "-O",
+      ".afterburner/cdk-outputs.json",
+      ...process.argv.slice(2),
+    ],
   });
   console.log("Synthesizing...");
   synthAndUpload();
