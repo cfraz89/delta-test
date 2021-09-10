@@ -24,14 +24,6 @@ async function getStacks() {
   return JSON.parse(outputsFile) as Record<string, Stack>;
 }
 
-async function getResources(stack: string) {
-  const stackFile = await fs.readFile(
-    `cdk.out/${stack}.template.json`,
-    "utf-8"
-  );
-  return JSON.parse(stackFile)["Resources"];
-}
-
 async function tailLogs(fn: Function) {
   const cw = new CloudWatchLogs({});
   let lastReceivedTimestamp = Date.now();
