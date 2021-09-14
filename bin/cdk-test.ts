@@ -2,10 +2,9 @@
 import "source-map-support/register";
 import * as cdk from "@aws-cdk/core";
 import { CdkTestStack } from "../lib/cdk-test-stack";
-import { resolveEnv } from "../afterburner/env";
+import { JetStage } from "../jet/app/stack";
 
 const app = new cdk.App();
-
-resolveEnv().then((env) => {
-  new CdkTestStack(app, env("CdkTestStack"));
-});
+// new JetStage(app, "MyStage", (stage) => {
+new CdkTestStack(app, "CdkTestStack");
+// });

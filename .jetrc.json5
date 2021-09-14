@@ -1,0 +1,8 @@
+{
+  user: "chris",
+  // These are the defaults, uncomment to override
+  // env: "#personal",
+  // outDir: '.jet',
+  watch: "**/*.ts",
+  // ignore: "node_modules"
+}

@@ -1,3 +1,4 @@
+// @ts-ignore
 import { say } from "cowsay2";
 
 export const handler = async () => {
