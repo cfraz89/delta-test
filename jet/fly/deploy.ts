@@ -40,26 +40,31 @@ export async function deployIfNecessary(config: Config, watcher: FSWatcher) {
   const outPath = outFilePath(config.outDir);
   try {
     if (!fs.existsSync(outPath)) {
-      console.log("No deployment outputs file exists. Deploying...");
+      console.info("No deployment outputs file exists. Deploying...");
       deploy = true;
     } else {
       const outStat = await fsp.stat(outPath);
       if (outStat.mtimeMs < (await latestWatchedMtime(watcher))) {
-        console.log("Source file has changed since last deploy, deploying...");
+        console.info("Source file has changed since last deploy, deploying...");
         deploy = true;
       }
     }
   } catch (e) {
-    console.log(`Error statting ${outFilePath}, giving up`);
+    console.error(`Error statting ${outFilePath}, giving up`);
     exit(0);
   }
   if (deploy) {
-    runCdk(
-      "deploy",
-      ["-O", outPath, ...config.deploy, stackFilter(config)],
-      config.outDir
-    );
+    doDeploy(config);
   } else {
-    console.log("Outputs file up to date, skipping initial deploy");
+    console.info("Outputs file up to date, skipping initial deploy");
   }
+}
+
+export function doDeploy(config: Config) {
+  const outPath = outFilePath(config.outDir);
+  return runCdk(
+    "deploy",
+    ["-O", outPath, ...config.fly.deployArgs, stackFilter(config)],
+    config.outDir
+  );
 }

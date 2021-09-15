@@ -2,10 +2,11 @@ import { cosmiconfigSync } from "cosmiconfig";
 import json5 from "json5";
 import { Config, DefaultConfig } from "../common/config";
 import os from "os";
+import merge from "deepmerge";
 
 export function getConfig(path: string | undefined): Config {
   const loadedConfig = loadConfig(path);
-  return { ...DefaultConfig, ...loadedConfig };
+  return merge(DefaultConfig, loadedConfig);
 }
 
 /**
@@ -18,7 +19,7 @@ function loadConfig(path: string | undefined): Partial<Config> {
   });
   const result = path ? explorer.load(path) : explorer.search();
   if (!result?.config) {
-    console.log("No config! Using system username");
+    console.warn("No config! Using system username");
     return { user: os.userInfo().username };
   }
   return result?.config;

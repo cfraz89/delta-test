@@ -4,8 +4,8 @@ import { Function } from "./types";
 const refreshInterval = 500;
 
 export async function tailLogs(fn: Function) {
-  console.log("Tailing logs");
-  console.log("---");
+  console.info("Tailing logs");
+  console.info("---");
   const cw = new CloudWatchLogs({});
   let lastReceivedTimestamp = Date.now();
   return setInterval(async () => {

@@ -1,8 +1,29 @@
 {
-  user: "chris",
-  env: "dev-{user}",
-  // These are the defaults, uncomment to override
-  // outDir: '.jet',
-  // watch: "**/*.ts",
-  // ignore: "node_modules"
+  user: 'chrisf',
+  env: 'dev-{user}',
+  fly: {
+    watcher: {
+      lambda: {
+        watch: [
+          'lib/lambda/**/*.ts',
+          'lib/lambda/**/*.js',
+          'lambda/**/*.ts',
+          'lambda/**/*.js',
+        ],
+        ignore: [
+          'node_modules',
+        ],
+      },
+      deploy: {
+        watch: [
+          'lib/**/*.ts',
+          'lib/**/*.js',
+        ],
+        ignore: [
+          'node_modules',
+          'lambda',
+        ],
+      },
+    },
+  },
 }

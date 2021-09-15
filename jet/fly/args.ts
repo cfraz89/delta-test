@@ -22,12 +22,16 @@ export function setupArgs() {
       type: "string",
       description: "Output directory for jet framework data",
     })
-    .option("synth", {
+    .option("synth-args", {
       type: "array",
       description: "Extra arguments to cdk synth",
     })
-    .option("deploy", {
+    .option("deploy-args", {
       type: "array",
       description: "Extra arguments to cdk deploy",
+    })
+    .option("force-deploy", {
+      type: "boolean",
+      description: "Force initial deploy when starting up",
     }).argv;
 }

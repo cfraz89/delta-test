@@ -1,19 +1,9 @@
-import {
-  CfnElement,
-  CfnOutput,
-  CfnResource,
-  Construct,
-  Stack,
-  StackProps,
-  Stage,
-  StageProps,
-} from "@aws-cdk/core";
+import { CfnElement, CfnOutput, CfnResource, Construct } from "@aws-cdk/core";
 import * as lambda from "@aws-cdk/aws-lambda";
-import { getConfig } from "./config";
 
 export function jetOutput(scope: Construct) {
   if (scope.node.tryGetContext("jet")) {
-    const fns = scope.node
+    const functions = scope.node
       .findAll()
       .map((c) => {
         let f = c as lambda.Function;
@@ -29,8 +19,11 @@ export function jetOutput(scope: Construct) {
       })
       .filter((x) => x);
 
-    new CfnOutput(scope, "jetfns", {
-      value: JSON.stringify(fns),
+    new CfnOutput(scope, "jet", {
+      value: JSON.stringify({
+        functions,
+        assemblyOutDir: scope.node.tryGetContext("jet-assembly-out-dir"),
+      }),
     });
   }
 }

@@ -3,7 +3,7 @@ import { runCdk } from "./run";
 import { Lambda } from "@aws-sdk/client-lambda";
 import zip from "jszip";
 import fsp from "fs/promises";
-import { Function, Stack } from "./types";
+import { Function, JetOutput, Stack } from "./types";
 import { outFilePath } from "./deploy";
 import { tailLogs } from "./logs";
 import { stackFilter } from "./config";
@@ -12,38 +12,45 @@ const lambda = new Lambda({});
 export async function refresh(
   config: Config
 ): Promise<(NodeJS.Timeout | null)[][]> {
-  runCdk("synth", [...config.synth, stackFilter(config)], config.outDir);
-  console.log("Uploading lambdas...");
+  runCdk(
+    "synth",
+    [...config.fly.synthArgs, stackFilter(config)],
+    config.outDir
+  );
+  console.info("Uploading lambdas...");
   const stacks = await getStacks(config);
   return Promise.all(
     Object.values(stacks).map(async (stack) => {
-      if (!stack.fns) {
-        throw new Error("No fns in stack output!");
+      if (!stack.jet) {
+        console.error(
+          "No jet value in stack output. Did you add the jet function to the end?"
+        );
+        return [null];
       }
-      const fns: Function[] = await JSON.parse(stack.fns);
+      const jetOutput: JetOutput = await JSON.parse(stack.jet);
       return Promise.all(
-        fns.map(async (fn) => {
-          console.log(`Uploading ${fn.name}`);
-          return upload(config, fn);
+        jetOutput.functions.map(async (fn) => {
+          console.info(`Uploading ${fn.name}`);
+          return upload(fn, jetOutput.assemblyOutDir);
         })
       );
     })
   );
 }
 
-async function upload(config: Config, fn: Function) {
-  const zipped = await makeZip(config, fn);
+async function upload(fn: Function, assemblyOutDir: string) {
+  const zipped = await makeZip(fn, assemblyOutDir);
   if (zipped) {
     updateLambda(zipped, fn);
     return tailLogs(fn);
   } else {
-    console.log("Failed to update");
+    console.error("Failed to update");
     return null;
   }
 }
 
-async function makeZip(config: Config, fn: Function) {
-  const assetPath = `${config.outDir}/cdk.out/${fn.path}`;
+async function makeZip(fn: Function, assemblyOutDir: string) {
+  const assetPath = `${assemblyOutDir}/${fn.path}`;
   const assetZip = new zip();
   const assetFilePaths = await fsp.readdir(assetPath);
   const assetFiles = await Promise.all(
@@ -65,7 +72,7 @@ async function updateLambda(zip: Uint8Array, fn: Function) {
     FunctionName: fn.name,
     ZipFile: zip,
   });
-  console.log(response.LastUpdateStatus);
+  console.info(response.LastUpdateStatus);
 }
 
 async function getStacks(config: Config) {

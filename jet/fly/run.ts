@@ -19,7 +19,7 @@ export function runCdk(
     }
   );
   if (result.status) {
-    console.log("Problem running cdk, ejecting!");
+    console.info("Problem running cdk, ejecting!");
     process.exit(1);
   }
   return result;

@@ -1,5 +1,10 @@
 export interface Stack {
-  fns: string;
+  jet: string;
+}
+
+export interface JetOutput {
+  functions: Function[];
+  assemblyOutDir: string;
 }
 
 export interface Function {

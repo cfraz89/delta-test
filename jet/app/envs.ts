@@ -28,6 +28,7 @@ class JetStage extends Stage {
     props?: StageProps
   ) {
     super(scope, id, props);
+    this.node.setContext("jet-assembly-out-dir", this._assemblyBuilder.outdir);
     stacks(this);
   }
 }
