@@ -6,8 +6,6 @@ import path from "path";
 import { exit } from "process";
 import { runCdk } from "./run";
 import { stackFilter } from "./config";
-import { Interface } from "readline";
-import chalk from "chalk";
 
 async function latestWatchedMtime(watcher: FSWatcher) {
   return await new Promise<number>((resolve) => {
@@ -37,7 +35,10 @@ export function outFilePath(outDir: string) {
   return `${outDir}/cdk-outputs.json`;
 }
 
-export async function deployIfNecessary(config: Config, watcher: FSWatcher) {
+export async function deployIfNecessary(
+  config: Config,
+  watcher: FSWatcher
+): Promise<boolean> {
   let deploy = false;
   const outPath = outFilePath(config.outDir);
   try {
@@ -60,6 +61,7 @@ export async function deployIfNecessary(config: Config, watcher: FSWatcher) {
   } else {
     console.info("Outputs file up to date, skipping initial deploy");
   }
+  return deploy;
 }
 
 export function doDeploy(config: Config) {
@@ -68,11 +70,5 @@ export function doDeploy(config: Config) {
     "deploy",
     ["-O", outPath, ...config.fly.deployArgs, stackFilter(config)],
     config.outDir
-  );
-}
-
-export function deployPrompt() {
-  console.info(
-    chalk.yellowBright(chalk.bgBlack("Press d at any time to redeploy."))
   );
 }

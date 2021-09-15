@@ -3,27 +3,13 @@
   env: 'dev-{user}',
   fly: {
     watcher: {
-      lambda: {
-        watch: [
-          'lib/lambda/**/*.ts',
-          'lib/lambda/**/*.js',
-          'lambda/**/*.ts',
-          'lambda/**/*.js',
-        ],
-        ignore: [
-          'node_modules',
-        ],
-      },
-      deploy: {
-        watch: [
-          'lib/**/*.ts',
-          'lib/**/*.js',
-        ],
-        ignore: [
-          'node_modules',
-          'lambda',
-        ],
-      },
+      watch: [
+        'lib/**/*.ts',
+        'lib/**/*.js',
+      ],
+      ignore: [
+        'node_modules',
+      ],
     },
   },
 }

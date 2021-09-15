@@ -11,15 +11,18 @@ import { Interface } from "readline";
 import chalk from "chalk";
 
 const lambda = new Lambda({});
-export async function refresh(
+export async function processLambdas(
+  doUpload: boolean,
   config: Config
 ): Promise<(NodeJS.Timeout | null)[][]> {
-  runCdk(
-    "synth",
-    [...config.fly.synthArgs, stackFilter(config)],
-    config.outDir
-  );
-  console.info("\nUploading lambdas...\n");
+  if (doUpload) {
+    runCdk(
+      "synth",
+      [...config.fly.synthArgs, stackFilter(config)],
+      config.outDir
+    );
+    console.info("\nUploading lambdas...\n");
+  }
   const stacks = await getStacks(config);
   return Promise.all(
     Object.values(stacks).map(async (stack) => {
@@ -30,7 +33,7 @@ export async function refresh(
         return [null];
       }
       const jetOutput: JetOutput = await JSON.parse(stack.jet);
-      console.info(chalk.bold("Stack outputs (jet hidden):"));
+      console.info(chalk.bold("\nStack outputs (jet hidden):"));
       const { jet, ...rest } = stack;
       Object.entries(rest).forEach(([key, value]) => {
         console.info(chalk.blueBright(chalk.bgBlack(`${key}: ${value}`)));
@@ -38,8 +41,11 @@ export async function refresh(
       console.log();
       return Promise.all(
         jetOutput.functions.map(async (fn) => {
-          console.info(`Uploading ${fn.name}`);
-          return upload(fn, jetOutput.assemblyOutDir);
+          if (doUpload) {
+            console.info(`Uploading ${fn.name}`);
+            await upload(fn, jetOutput.assemblyOutDir);
+          }
+          return tailLogs(fn);
         })
       );
     })
@@ -49,8 +55,7 @@ export async function refresh(
 async function upload(fn: Function, assemblyOutDir: string) {
   const zipped = await makeZip(fn, assemblyOutDir);
   if (zipped) {
-    await updateLambda(zipped, fn);
-    return tailLogs(fn);
+    return updateLambda(zipped, fn);
   } else {
     console.error("Failed to update");
     return null;

@@ -3,11 +3,12 @@ import { watch } from "chokidar";
 import { Config } from "../common/config";
 import { setupArgs } from "./args";
 import { deployIfNecessary, doDeploy } from "./deploy";
-import { refresh } from "./refresh";
+import { processLambdas } from "./lambda";
 import { getConfig } from "./config";
 import { emitKeypressEvents, createInterface } from "readline";
 import merge from "deepmerge";
 import chalk from "chalk";
+import { tailLogs } from "./logs";
 
 async function main() {
   const { args, config } = await getInputs();
@@ -19,28 +20,37 @@ async function main() {
   const lambdaWatcher = watch(config.fly.watcher.watch, {
     ignored: config.fly.watcher.ignore,
   });
-  await deployIfNecessary(config, lambdaWatcher);
+  const didDeploy = await deployIfNecessary(config, lambdaWatcher);
   console.info("Watching for source changes.");
 
-  const refreshLambdas = async () => {
+  const refreshLambdas = async (doUpload: boolean) => {
     clearTailTimeouts();
-    tailTimeouts = await refresh(config);
+    tailTimeouts = await processLambdas(doUpload, config);
   };
+
+  const uploadRefreshLambdas = () => refreshLambdas(true);
   emitKeypressEvents(process.stdin);
   process.stdin.setRawMode(true);
-  process.stdin.on("keypress", function (ch, key) {
-    if (key && key.name === "d") {
-      console.info(chalk.blueBright(chalk.bgBlack("Deploying")));
+  process.stdin.on("keypress", async function (ch, key) {
+    if (
+      (key?.ctrl && key?.name === "c") ||
+      (!(key?.ctrl ?? false) && key?.name === "x")
+    ) {
+      process.exit();
+    }
+    if (!(key?.ctrl ?? false) && key?.name === "d") {
+      console.info(chalk.bold(chalk.blue(chalk.bgBlack("Deploying"))));
       process.stdin.pause();
-      lambdaWatcher.off("change", refreshLambdas);
+      lambdaWatcher.off("change", uploadRefreshLambdas);
       clearTailTimeouts();
       doDeploy(config);
-      lambdaWatcher.on("change", refreshLambdas);
+      lambdaWatcher.on("change", uploadRefreshLambdas);
+      await refreshLambdas(false);
       process.stdin.resume();
     }
   });
-  lambdaWatcher.on("change", refreshLambdas);
-  refreshLambdas();
+  lambdaWatcher.on("change", uploadRefreshLambdas);
+  refreshLambdas(!didDeploy);
 }
 
 async function getInputs() {
