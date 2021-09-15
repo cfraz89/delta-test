@@ -1,4 +1,4 @@
-import { CfnElement, CfnOutput, CfnResource, Construct } from "@aws-cdk/core";
+import { CfnOutput, CfnResource, Construct } from "@aws-cdk/core";
 import * as lambda from "@aws-cdk/aws-lambda";
 
 export function jetOutput(scope: Construct) {

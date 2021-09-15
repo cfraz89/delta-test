@@ -1,16 +1,25 @@
-import { Construct, Stage, StageProps } from "@aws-cdk/core";
+import {
+  Aspects,
+  Construct,
+  IAspect,
+  IConstruct,
+  Stack,
+  Stage,
+  StageProps,
+} from "@aws-cdk/core";
 import { DefaultConfig } from "../common/config";
 import { getConfig } from "./config";
+import { jetOutput } from "./stack";
 
-export interface JetEnvsProps {
+export interface JetHangarProps {
   envs?: string[];
   stacks: (scope: Construct) => void;
 }
 
 export const DefaultEnv = DefaultConfig.env!;
 
-export class JetEnvs extends Construct {
-  constructor(scope: Construct, id: string, props: JetEnvsProps) {
+export class JetHangar extends Construct {
+  constructor(scope: Construct, id: string, props: JetHangarProps) {
     super(scope, id);
     const configFile = scope.node.tryGetContext("jet-config");
     const config = getConfig(configFile);
@@ -30,5 +39,15 @@ class JetStage extends Stage {
     super(scope, id, props);
     this.node.setContext("jet-assembly-out-dir", this._assemblyBuilder.outdir);
     stacks(this);
+    Aspects.of(this).add(new StackJetter());
+  }
+}
+
+class StackJetter implements IAspect {
+  public visit(node: IConstruct): void {
+    // See that we're dealing with a CfnBucket
+    if (node instanceof Stack) {
+      jetOutput(node);
+    }
   }
 }

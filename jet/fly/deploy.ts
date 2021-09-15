@@ -6,6 +6,7 @@ import path from "path";
 import { exit } from "process";
 import { runCdk } from "./run";
 import { stackFilter } from "./config";
+import { Stack } from "./types";
 
 async function latestWatchedMtime(watcher: FSWatcher) {
   return await new Promise<number>((resolve) => {
@@ -43,12 +44,18 @@ export async function deployIfNecessary(
   const outPath = outFilePath(config.outDir);
   try {
     if (!fs.existsSync(outPath)) {
-      console.info("No deployment outputs file exists. Deploying...");
+      console.info("No deployment outputs file exists");
       deploy = true;
     } else {
       const outStat = await fsp.stat(outPath);
       if (outStat.mtimeMs < (await latestWatchedMtime(watcher))) {
-        console.info("Source file has changed since last deploy, deploying...");
+        console.info("Source file has changed since last deploy");
+        deploy = true;
+      }
+      const file = await fsp.readFile(outPath);
+      const stacks: Record<string, Stack> = JSON.parse(file.toString());
+      if (!Object.keys(stacks).length) {
+        console.warn("Outputs file has no stacks");
         deploy = true;
       }
     }

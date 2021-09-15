@@ -9,6 +9,7 @@ import { tailLogs } from "./logs";
 import { stackFilter } from "./config";
 import { Interface } from "readline";
 import chalk from "chalk";
+import { usagePrompt } from "./prompt";
 
 const lambda = new Lambda({});
 export async function processLambdas(
@@ -24,6 +25,10 @@ export async function processLambdas(
     console.info("\nUploading lambdas...\n");
   }
   const stacks = await getStacks(config);
+  if (!Object.keys(stacks).length) {
+    console.info(chalk.bold("No stacks"));
+    usagePrompt();
+  }
   return Promise.all(
     Object.values(stacks).map(async (stack) => {
       if (!stack.jet) {

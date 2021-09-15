@@ -22,7 +22,7 @@ export const DefaultConfig: Config = {
       ignore: ["node_modules"],
     },
     synthArgs: ["-q"],
-    deployArgs: ["--no-rollback"],
+    deployArgs: [],
   },
 };
 

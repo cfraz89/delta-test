@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import child_process from "child_process";
 import npmRunPath from "npm-run-path";
 
@@ -19,7 +20,9 @@ export function runCdk(
     }
   );
   if (result.status) {
-    console.info("Problem running cdk, ejecting!");
+    console.error(
+      chalk.redBright(chalk.bgBlack("Problem running cdk, ejecting!"))
+    );
     process.exit(1);
   }
   return result;
