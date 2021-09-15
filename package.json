@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "@aws-cdk/core": "1.121.0",
+    "chalk": "^4.1.2",
     "cowsay2": "^2.0.4",
     "deepmerge": "^4.2.2",
     "source-map-support": "^0.5.16"

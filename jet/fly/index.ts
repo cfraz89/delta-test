@@ -5,7 +5,9 @@ import { setupArgs } from "./args";
 import { deployIfNecessary, doDeploy } from "./deploy";
 import { refresh } from "./refresh";
 import { getConfig } from "./config";
+import { emitKeypressEvents, createInterface } from "readline";
 import merge from "deepmerge";
+import chalk from "chalk";
 
 async function main() {
   const { args, config } = await getInputs();
@@ -14,27 +16,28 @@ async function main() {
     tailTimeouts.forEach((t) => t.forEach((tx) => tx && clearInterval(tx)));
 
   fsp.mkdir(config.outDir, { recursive: true });
-  const deployWatcher = watch(config.fly.watcher.deploy.watch, {
-    ignored: config.fly.watcher.deploy.ignore,
+  const lambdaWatcher = watch(config.fly.watcher.watch, {
+    ignored: config.fly.watcher.ignore,
   });
-  const lambdaWatcher = watch(config.fly.watcher.lambda.watch, {
-    ignored: config.fly.watcher.lambda.ignore,
-  });
-  if (args["force-deploy"]) {
-    doDeploy(config);
-  } else {
-    await deployIfNecessary(config, deployWatcher);
-  }
-  console.log("Watching for source changes...");
+  await deployIfNecessary(config, lambdaWatcher);
+  console.info("Watching for source changes.");
+
   const refreshLambdas = async () => {
     clearTailTimeouts();
     tailTimeouts = await refresh(config);
   };
-  deployWatcher.on("change", async () => {
-    lambdaWatcher.off("change", refreshLambdas);
-    clearTailTimeouts();
-    doDeploy(config);
-    lambdaWatcher.on("change", refreshLambdas);
+  emitKeypressEvents(process.stdin);
+  process.stdin.setRawMode(true);
+  process.stdin.on("keypress", function (ch, key) {
+    if (key && key.name === "d") {
+      console.info(chalk.blueBright(chalk.bgBlack("Deploying")));
+      process.stdin.pause();
+      lambdaWatcher.off("change", refreshLambdas);
+      clearTailTimeouts();
+      doDeploy(config);
+      lambdaWatcher.on("change", refreshLambdas);
+      process.stdin.resume();
+    }
   });
   lambdaWatcher.on("change", refreshLambdas);
   refreshLambdas();

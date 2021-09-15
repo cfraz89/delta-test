@@ -29,9 +29,5 @@ export function setupArgs() {
     .option("deploy-args", {
       type: "array",
       description: "Extra arguments to cdk deploy",
-    })
-    .option("force-deploy", {
-      type: "boolean",
-      description: "Force initial deploy when starting up",
     }).argv;
 }

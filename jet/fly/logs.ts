@@ -1,11 +1,14 @@
 import { CloudWatchLogs } from "@aws-sdk/client-cloudwatch-logs";
+import chalk from "chalk";
+import { Interface } from "readline";
+import { deployPrompt } from "./deploy";
 import { Function } from "./types";
 
 const refreshInterval = 500;
 
 export async function tailLogs(fn: Function) {
-  console.info("Tailing logs");
-  console.info("---");
+  console.info(chalk.bold("\nTailing logs"));
+  deployPrompt();
   const cw = new CloudWatchLogs({});
   let lastReceivedTimestamp = Date.now();
   return setInterval(async () => {
@@ -30,6 +33,7 @@ export async function tailLogs(fn: Function) {
           console.log(`${e?.time} ${fn.id}`);
           console.log(e?.message);
         });
+        deployPrompt();
         lastReceivedTimestamp =
           events.events[events.events.length - 1].timestamp ??
           lastReceivedTimestamp;

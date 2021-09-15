@@ -6,6 +6,8 @@ import path from "path";
 import { exit } from "process";
 import { runCdk } from "./run";
 import { stackFilter } from "./config";
+import { Interface } from "readline";
+import chalk from "chalk";
 
 async function latestWatchedMtime(watcher: FSWatcher) {
   return await new Promise<number>((resolve) => {
@@ -66,5 +68,11 @@ export function doDeploy(config: Config) {
     "deploy",
     ["-O", outPath, ...config.fly.deployArgs, stackFilter(config)],
     config.outDir
+  );
+}
+
+export function deployPrompt() {
+  console.info(
+    chalk.yellowBright(chalk.bgBlack("Press d at any time to redeploy."))
   );
 }

@@ -5,7 +5,7 @@ import { CdkTestStack } from "../lib/cdk-test-stack";
 import { DefaultEnv, JetEnvs } from "../jet/app/envs";
 
 const app = new cdk.App();
-new JetEnvs(app, "Test", {
+new JetEnvs(app, "Default", {
   envs: [DefaultEnv, "uat"],
   stacks: (stage) => {
     new CdkTestStack(stage, "CdkTestStack");

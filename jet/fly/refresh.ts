@@ -7,6 +7,8 @@ import { Function, JetOutput, Stack } from "./types";
 import { outFilePath } from "./deploy";
 import { tailLogs } from "./logs";
 import { stackFilter } from "./config";
+import { Interface } from "readline";
+import chalk from "chalk";
 
 const lambda = new Lambda({});
 export async function refresh(
@@ -17,7 +19,7 @@ export async function refresh(
     [...config.fly.synthArgs, stackFilter(config)],
     config.outDir
   );
-  console.info("Uploading lambdas...");
+  console.info("\nUploading lambdas...\n");
   const stacks = await getStacks(config);
   return Promise.all(
     Object.values(stacks).map(async (stack) => {
@@ -28,6 +30,12 @@ export async function refresh(
         return [null];
       }
       const jetOutput: JetOutput = await JSON.parse(stack.jet);
+      console.info(chalk.bold("Stack outputs (jet hidden):"));
+      const { jet, ...rest } = stack;
+      Object.entries(rest).forEach(([key, value]) => {
+        console.info(chalk.blueBright(chalk.bgBlack(`${key}: ${value}`)));
+      });
+      console.log();
       return Promise.all(
         jetOutput.functions.map(async (fn) => {
           console.info(`Uploading ${fn.name}`);
@@ -41,7 +49,7 @@ export async function refresh(
 async function upload(fn: Function, assemblyOutDir: string) {
   const zipped = await makeZip(fn, assemblyOutDir);
   if (zipped) {
-    updateLambda(zipped, fn);
+    await updateLambda(zipped, fn);
     return tailLogs(fn);
   } else {
     console.error("Failed to update");
