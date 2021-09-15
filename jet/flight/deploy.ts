@@ -3,9 +3,9 @@ import { Config } from "../common/config";
 import fsp from "fs/promises";
 import fs from "fs";
 import path from "path";
-import { Args } from "./args";
 import { exit } from "process";
 import { runCdk } from "./run";
+import { stackFilter } from "./config";
 
 async function latestWatchedMtime(watcher: FSWatcher) {
   return await new Promise<number>((resolve) => {
@@ -56,8 +56,7 @@ export async function deployIfNecessary(config: Config, watcher: FSWatcher) {
   if (deploy) {
     runCdk(
       "deploy",
-      config.env,
-      ["-O", outPath, ...config.deploy],
+      ["-O", outPath, ...config.deploy, stackFilter(config)],
       config.outDir
     );
   } else {

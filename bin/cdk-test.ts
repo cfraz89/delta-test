@@ -2,9 +2,12 @@
 import "source-map-support/register";
 import * as cdk from "@aws-cdk/core";
 import { CdkTestStack } from "../lib/cdk-test-stack";
-import { JetStage } from "../jet/app/stack";
+import { DefaultEnv, JetEnvs } from "../jet/app/envs";
 
 const app = new cdk.App();
-// new JetStage(app, "MyStage", (stage) => {
-new CdkTestStack(app, "CdkTestStack");
-// });
+new JetEnvs(app, "Test", {
+  envs: [DefaultEnv, "uat"],
+  stacks: (stage) => {
+    new CdkTestStack(stage, "CdkTestStack");
+  },
+});

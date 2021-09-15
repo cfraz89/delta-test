@@ -1,6 +1,6 @@
 export interface Config {
   user: string;
-  env: string;
+  env?: string;
   outDir: string;
   watch: string | string[];
   ignore: string | string[];
@@ -8,9 +8,9 @@ export interface Config {
   deploy: string[];
 }
 
-export const Defaults: Config = {
+export const DefaultConfig: Config = {
   user: "user",
-  env: "#personal",
+  env: "dev-{user}",
   outDir: ".jet",
   watch: "lib/**/*.ts",
   ignore: "node_modules",

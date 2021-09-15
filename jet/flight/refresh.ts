@@ -6,12 +6,13 @@ import fsp from "fs/promises";
 import { Function, Stack } from "./types";
 import { outFilePath } from "./deploy";
 import { tailLogs } from "./logs";
+import { stackFilter } from "./config";
 
 const lambda = new Lambda({});
 export async function refresh(
   config: Config
 ): Promise<(NodeJS.Timeout | null)[][]> {
-  runCdk("synth", config.env, config.synth, config.outDir);
+  runCdk("synth", [...config.synth, stackFilter(config)], config.outDir);
   console.log("Uploading lambdas...");
   const stacks = await getStacks(config);
   return Promise.all(

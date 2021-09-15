@@ -1,9 +1,11 @@
 import fsp from "fs/promises";
 import { watch } from "chokidar";
-import { Config, getConfig } from "../common/config";
+import { Config } from "../common/config";
 import { Args, setupArgs } from "./args";
 import { deployIfNecessary } from "./deploy";
 import { refresh } from "./refresh";
+import { getConfig } from "./config";
+import { runCdk } from "./run";
 
 async function main() {
   const args = await setupArgs();

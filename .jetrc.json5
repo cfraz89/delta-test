@@ -1,8 +1,8 @@
 {
   user: "chris",
+  env: "dev-{user}",
   // These are the defaults, uncomment to override
-  // env: "#personal",
   // outDir: '.jet',
-  watch: "**/*.ts",
+  // watch: "**/*.ts",
   // ignore: "node_modules"
 }

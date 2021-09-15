@@ -3,10 +3,10 @@ import { cosmiconfig } from "cosmiconfig";
 import fs from "fs/promises";
 import os from "os";
 import json5 from "json5";
-import { Config, DefaultConfigPath, Defaults } from "../common/config";
+import { Config, DefaultConfigPath, DefaultConfig } from "../common/config";
 export async function getConfig(path: string | undefined): Promise<Config> {
   const loadedConfig = await loadConfig(path);
-  return { ...Defaults, ...loadedConfig };
+  return { ...DefaultConfig, ...loadedConfig };
 }
 
 /**
@@ -26,7 +26,7 @@ async function loadConfig(path: string | undefined): Promise<Partial<Config>> {
       `{
 	user: '${username}',
 	// These are the defaults, uncomment to override
-	// env: "#personal",
+	// env: "dev-{user}",
 	// outDir: '.jet',
 	// watch: "lib/**/*.ts",
 	// ignore: "node_modules",
@@ -57,3 +57,6 @@ async function getUserName(): Promise<string> {
   const iamUser = identityArn ? identityArn.split("/")[1] : undefined;
   return iamUser ?? os.userInfo().username;
 }
+
+export const stackFilter = (config: Config) =>
+  config.env ? `*/${config.env.replace("{user}", config.user)}/*` : "";
