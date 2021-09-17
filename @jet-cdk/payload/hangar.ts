@@ -7,7 +7,7 @@ import {
   Stage,
   StageProps,
 } from "@aws-cdk/core";
-import { getConfig } from "./config";
+import { loadConfig } from "../common/config";
 import { jetOutput } from "./stack";
 
 export class JetHangar extends Construct {
@@ -23,18 +23,19 @@ export class JetHangar extends Construct {
     super(scope, id);
     //Add a context override just in case it is so desired
     const configFile = this.node.tryGetContext("@jet-cdk/lib:configFile");
-    const config = getConfig(configFile);
-    Object.entries(stages).forEach(([id, stage]) => {
-      if (typeof stage === "object") {
-        new JetStage(
-          this,
-          id.replace("{user}", config.user),
-          stage.stage,
-          stage.props
-        );
-      } else {
-        new JetStage(this, id.replace("{user}", config.user), stage);
-      }
+    loadConfig(configFile).then((config) => {
+      Object.entries(stages).forEach(([id, stage]) => {
+        if (typeof stage === "object") {
+          new JetStage(
+            this,
+            id.replace("{user}", config.user),
+            stage.stage,
+            stage.props
+          );
+        } else {
+          new JetStage(this, id.replace("{user}", config.user), stage);
+        }
+      });
     });
   }
 }

@@ -5,6 +5,6 @@ export const handler = async () => {
   console.log(say("Logging this!!!"));
   return {
     status: 200,
-    body: say("she double go go go"),
+    body: say("triple go go"),
   };
 };

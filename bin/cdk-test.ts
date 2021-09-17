@@ -2,7 +2,7 @@
 import "source-map-support/register";
 import * as cdk from "@aws-cdk/core";
 import { CdkTestStack } from "../lib/cdk-test-stack";
-import { JetHangar } from "../@jet-cdk/lib/hangar";
+import { JetHangar } from "../@jet-cdk/payload/hangar";
 
 const app = new cdk.App();
 new JetHangar(app, "CdkTest", {

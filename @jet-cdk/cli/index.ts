@@ -1,7 +1,7 @@
-import { Config } from "../common/config";
+import { BaseConfig, Config, loadConfig } from "../common/config";
 import { Args, setupArgs } from "./core/args";
-import { getConfig } from "./core/config";
 import merge from "deepmerge";
+import cleanDeep from "clean-deep";
 import chalk from "chalk";
 import { listStages } from "./list-stages";
 import { runDev } from "./dev";
@@ -27,10 +27,30 @@ async function main() {
   }
 }
 
+/**
+ * Combine config with args into a final config, and verify the stage
+ * @param args
+ * @returns
+ */
 async function getMergedConfig(args: Args): Promise<Config> {
-  const c = await getConfig(args.config);
-  const stage = args.stage ?? c.dev.stage;
-  if (!stage) {
+  const c = await loadConfig(args.config);
+  //The deep clean is important to make sure we dont overwrite values from the config with unset args
+  const argsConfig = cleanDeep(
+    {
+      outDir: args.outDir,
+      dev: {
+        stage: args.stage,
+        synthArgs: args["synth-args"],
+        deployArgs: args["deploy-args"],
+      },
+    },
+    { undefinedValues: true }
+  );
+  const config: BaseConfig & Pick<Config, "user"> = merge(c, argsConfig);
+  const stages = listStages(c.outDir, c.user);
+  let stageError = false;
+  if (!config.dev.stage) {
+    stageError = true;
     console.error(
       chalk.redBright(
         chalk.bgBlack("No stage has been provided, from config or argument.")
@@ -40,33 +60,26 @@ async function getMergedConfig(args: Args): Promise<Config> {
     console.info(
       "- Add stage to your configuration file (probably .jetrc.json5)"
     );
-    console.info("- Provide stage as an argument to `jet dev`\n");
-    const stages = listStages(c.outDir, c.user);
+    console.info("- Provide stage as an argument to `jet dev`");
+  }
+  if (config.dev.stage && !stages.includes(config.dev.stage)) {
+    stageError = true;
+    console.error(
+      chalk.redBright(
+        chalk.bgBlack(`Stage ${config.dev.stage} isn't valid for this app!`)
+      )
+    );
+  }
+  if (stageError) {
     console.info(
-      chalk.yellowBright(chalk.bgBlack(chalk.bold("Available stages:")))
+      chalk.yellowBright(chalk.bgBlack(chalk.bold("\nAvailable stages:")))
     );
     stages.forEach((s) => {
       console.info(s);
     });
     process.exit(0);
   }
-  const config: Config = {
-    ...c,
-    outDir: args.outDir ?? c.outDir,
-    dev: {
-      ...c.dev,
-      stage,
-      synthArgs: merge(
-        c.dev.synthArgs as string[],
-        (args["synth-args"] as string[]) ?? []
-      ),
-      deployArgs: merge(
-        c.dev.deployArgs as string[],
-        (args["deploy-args"] as string[]) ?? []
-      ),
-    },
-  };
-  return config;
+  return config as Config;
 }
 
 main();

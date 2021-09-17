@@ -1,10 +1,8 @@
 import fsp from "fs/promises";
 import { watch } from "chokidar";
 import { Config } from "../../common/config";
-import { Args, setupArgs } from "../core/args";
 import { deployIfNecessary, doDeploy } from "./deploy";
 import { lambdasNeedUploading, processLambdas } from "./lambda";
-import { getConfig } from "../core/config";
 import { emitKeypressEvents } from "readline";
 import chalk from "chalk";
 import { latestWatchedMtime } from "./files";
@@ -16,7 +14,6 @@ import { latestWatchedMtime } from "./files";
 export async function runDev(config: Config) {
   let tailTimeouts: NodeJS.Timeout[] = [];
   const clearTailTimeouts = () => tailTimeouts.forEach(clearInterval);
-
   fsp.mkdir(config.outDir, { recursive: true });
   const lambdaWatcher = watch(config.dev.watcher.watch, {
     ignored: config.dev.watcher.ignore,
@@ -24,8 +21,12 @@ export async function runDev(config: Config) {
   const lambdaMTime = await latestWatchedMtime(lambdaWatcher);
   const didDeploy = await deployIfNecessary(config, lambdaMTime);
   const refreshLambdas = async (doUpload: boolean) => {
-    clearTailTimeouts();
-    tailTimeouts = await processLambdas(doUpload, config);
+    try {
+      clearTailTimeouts();
+      tailTimeouts = await processLambdas(doUpload, config);
+    } catch (e) {
+      console.error(chalk.redBright(chalk.bgBlack("Error refreshing lambdas")));
+    }
   };
 
   const uploadRefreshLambdas = () => refreshLambdas(true);
