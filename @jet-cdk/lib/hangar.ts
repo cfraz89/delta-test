@@ -14,16 +14,16 @@ import { jetOutput } from "./stack";
 export class JetHangar extends Construct {
   constructor(
     scope: Construct,
+    id: string,
     stages: Record<
       string,
       | { props?: StageProps; stage: (stage: Stage) => void }
       | ((stage: Stage) => void)
     >
   ) {
-    const id = scope.node.tryGetContext("appName") ?? "App";
     super(scope, id);
     //Add a context override just in case it is so desired
-    const configFile = this.node.tryGetContext("jet-cdk:configFile");
+    const configFile = this.node.tryGetContext("@jet-cdk/lib:configFile");
     const config = getConfig(configFile);
     Object.entries(stages).forEach(([id, stage]) => {
       if (typeof stage === "object") {
@@ -48,7 +48,7 @@ export class JetStage extends Stage {
     props?: StageProps
   ) {
     super(scope, id, props);
-    this.node.setContext("jet-assembly-out-dir", this._assemblyBuilder.outdir);
+    this.node.setContext("jet:assembly-out-dir", this._assemblyBuilder.outdir);
     stacks(this);
     Aspects.of(this).add(new StackJetter());
   }

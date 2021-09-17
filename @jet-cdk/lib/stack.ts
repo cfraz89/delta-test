@@ -4,7 +4,7 @@ import json5 from "json5";
 import fsp from "fs/promises";
 
 export function jetOutput(scope: Stack) {
-  const assemblyOutDir = scope.node.tryGetContext("jet-assembly-out-dir");
+  const assemblyOutDir = scope.node.tryGetContext("jet:assembly-out-dir");
   if (scope.node.tryGetContext("jet:dev") && assemblyOutDir) {
     const functions = scope.node.findAll().flatMap((c) => {
       let f = c as lambda.Function;
@@ -27,7 +27,7 @@ export function jetOutput(scope: Stack) {
     new CfnOutput(scope, "jet", {
       value: JSON.stringify({
         functions: outputFunctions,
-        assemblyOutDir: scope.node.tryGetContext("jet-assembly-out-dir"),
+        assemblyOutDir,
       }),
     });
   }

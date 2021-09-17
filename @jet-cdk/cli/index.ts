@@ -1,10 +1,10 @@
 import fsp from "fs/promises";
 import { watch } from "chokidar";
 import { Config } from "../common/config";
-import { setupArgs } from "./dev/args";
+import { setupArgs } from "./core/args";
 import { deployIfNecessary, doDeploy } from "./dev/deploy";
 import { lambdasNeedUploading, processLambdas } from "./dev/lambda";
-import { getConfig } from "./dev/config";
+import { getConfig } from "./core/config";
 import { emitKeypressEvents } from "readline";
 import merge from "deepmerge";
 import chalk from "chalk";

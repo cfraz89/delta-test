@@ -6,7 +6,7 @@ import fsp from "fs/promises";
 import { DeployedFunction, JetOutput, Stack, SynthedFunction } from "./types";
 import { outFilePath } from "./files";
 import { tailLogs } from "./logs";
-import { stackFilter } from "./config";
+import { stackFilter } from "../core/config";
 import chalk from "chalk";
 import { usagePrompt } from "./prompt";
 import json5 from "json5";

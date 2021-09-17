@@ -3,7 +3,7 @@ import fsp from "fs/promises";
 import fs from "fs";
 import { exit } from "process";
 import { runCdk } from "./run";
-import { stackFilter } from "./config";
+import { stackFilter } from "../core/config";
 import { Stack } from "./types";
 import { outFilePath } from "./files";
 import chalk from "chalk";
