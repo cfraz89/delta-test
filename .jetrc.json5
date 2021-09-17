@@ -1,9 +1,0 @@
-{
-  user: "chrisf",
-  dev: {
-    watcher: {
-      watch: ["lib/**/*.ts", "lib/**/*.js"],
-      ignore: ["node_modules", "jet"],
-    },
-  },
-}
