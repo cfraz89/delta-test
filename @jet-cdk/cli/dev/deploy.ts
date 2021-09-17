@@ -2,7 +2,7 @@ import { Config } from "../../common/config";
 import fsp from "fs/promises";
 import fs from "fs";
 import { exit } from "process";
-import { runCdk } from "./run";
+import { runCdk } from "../core/run-cdk";
 import { stackFilter } from "../core/config";
 import { Stack } from "./types";
 import { outFilePath } from "./files";

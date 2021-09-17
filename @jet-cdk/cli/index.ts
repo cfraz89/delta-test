@@ -1,71 +1,67 @@
-import fsp from "fs/promises";
-import { watch } from "chokidar";
 import { Config } from "../common/config";
-import { setupArgs } from "./core/args";
-import { deployIfNecessary, doDeploy } from "./dev/deploy";
-import { lambdasNeedUploading, processLambdas } from "./dev/lambda";
+import { Args, setupArgs } from "./core/args";
 import { getConfig } from "./core/config";
-import { emitKeypressEvents } from "readline";
 import merge from "deepmerge";
 import chalk from "chalk";
-import { latestWatchedMtime } from "./dev/files";
+import { listStages } from "./list-stages";
+import { runDev } from "./dev";
 
 async function main() {
-  const config = await getMergedConfig();
-  let tailTimeouts: NodeJS.Timeout[] = [];
-  const clearTailTimeouts = () => tailTimeouts.forEach(clearInterval);
-
-  fsp.mkdir(config.outDir, { recursive: true });
-  const lambdaWatcher = watch(config.dev.watcher.watch, {
-    ignored: config.dev.watcher.ignore,
-  });
-  const lambdaMTime = await latestWatchedMtime(lambdaWatcher);
-  const didDeploy = await deployIfNecessary(config, lambdaMTime);
-  const refreshLambdas = async (doUpload: boolean) => {
-    clearTailTimeouts();
-    tailTimeouts = await processLambdas(doUpload, config);
-  };
-
-  const uploadRefreshLambdas = () => refreshLambdas(true);
-  emitKeypressEvents(process.stdin);
-  process.stdin.setRawMode(true);
-  process.stdin.on("keypress", async function (ch, key) {
-    if (
-      (key?.ctrl && key?.name === "c") ||
-      (!(key?.ctrl ?? false) && key?.name === "x")
-    ) {
-      console.info("Exiting");
-      process.exit();
-    }
-    if (!(key?.ctrl ?? false) && key?.name === "d") {
-      console.info(chalk.bold(chalk.blue(chalk.bgBlack("Deploying"))));
-      process.stdin.pause();
-      lambdaWatcher.off("change", uploadRefreshLambdas);
-      clearTailTimeouts();
-      doDeploy(config);
-      lambdaWatcher.on("change", uploadRefreshLambdas);
-      await refreshLambdas(false);
-      process.stdin.resume();
-    }
-  });
-  lambdaWatcher.on("change", uploadRefreshLambdas);
-  refreshLambdas(
-    !didDeploy && (await lambdasNeedUploading(config, lambdaMTime))
-  );
+  const args = await setupArgs();
+  const config = await getMergedConfig(args);
+  switch (args._[0] ?? "dev") {
+    case "dev":
+      await runDev(config);
+      break;
+    case "list-stages":
+      const stages = listStages(config.outDir, config.user);
+      console.info(
+        chalk.yellowBright(
+          chalk.bgBlack(chalk.bold("Stages detected from cdk:"))
+        )
+      );
+      stages.forEach((s) => {
+        console.info(s);
+      });
+      break;
+  }
 }
 
-async function getMergedConfig() {
-  const args = await setupArgs();
+async function getMergedConfig(args: Args): Promise<Config> {
   const c = await getConfig(args.config);
+  const stage = args.stage ?? c.dev.stage;
+  if (!stage) {
+    console.error(
+      chalk.redBright(
+        chalk.bgBlack("No stage has been provided, from config or argument.")
+      )
+    );
+    console.info("You may:");
+    console.info(
+      "- Add stage to your configuration file (probably .jetrc.json5)"
+    );
+    console.info("- Provide stage as an argument to `jet dev`\n");
+    const stages = listStages(c.outDir, c.user);
+    console.info(
+      chalk.yellowBright(chalk.bgBlack(chalk.bold("Available stages:")))
+    );
+    stages.forEach((s) => {
+      console.info(s);
+    });
+    process.exit(0);
+  }
   const config: Config = {
     ...c,
     outDir: args.outDir ?? c.outDir,
     dev: {
       ...c.dev,
-      stage: args.stage ?? c.dev.stage,
-      synthArgs: merge(c.dev.synthArgs, (args["synth-args"] as string[]) ?? []),
+      stage,
+      synthArgs: merge(
+        c.dev.synthArgs as string[],
+        (args["synth-args"] as string[]) ?? []
+      ),
       deployArgs: merge(
-        c.dev.deployArgs,
+        c.dev.deployArgs as string[],
         (args["deploy-args"] as string[]) ?? []
       ),
     },

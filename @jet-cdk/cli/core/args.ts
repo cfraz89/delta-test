@@ -6,11 +6,22 @@ type Await<T> = T extends Promise<infer U> | infer U ? U : never;
 
 export function setupArgs() {
   return yargs(hideBin(process.argv))
-    .option("stage", {
-      alias: "s",
-      type: "string",
-      description: "Stage to run against. [dev-{user}]",
+    .command("dev [stage]", "Start development mode", (yargs) => {
+      return yargs
+        .positional("stage", {
+          type: "string",
+          description: "Stage to use for development",
+        })
+        .option("synth-args", {
+          type: "array",
+          description: "Extra arguments to cdk synth",
+        })
+        .option("deploy-args", {
+          type: "array",
+          description: "Extra arguments to cdk deploy",
+        });
     })
+    .command("list-stages", "List detected stages")
     .option("config", {
       alias: "c",
       type: "string",
@@ -20,13 +31,5 @@ export function setupArgs() {
       alias: "o",
       type: "string",
       description: "Output directory for jet data [.jet]",
-    })
-    .option("synth-args", {
-      type: "array",
-      description: "Extra arguments to cdk synth",
-    })
-    .option("deploy-args", {
-      type: "array",
-      description: "Extra arguments to cdk deploy",
     }).argv;
 }

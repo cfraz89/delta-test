@@ -7,7 +7,6 @@ import {
   Stage,
   StageProps,
 } from "@aws-cdk/core";
-import { DefaultDevStage } from "../common/config";
 import { getConfig } from "./config";
 import { jetOutput } from "./stack";
 

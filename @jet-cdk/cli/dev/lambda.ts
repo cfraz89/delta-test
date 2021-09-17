@@ -1,5 +1,5 @@
 import { Config } from "../../common/config";
-import { runCdk } from "./run";
+import { runCdk } from "../core/run-cdk";
 import { Lambda } from "@aws-sdk/client-lambda";
 import zip from "jszip";
 import fsp from "fs/promises";

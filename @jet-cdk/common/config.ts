@@ -12,13 +12,10 @@ export interface Config {
   };
 }
 
-export const DefaultDevStage = "dev-{user}";
-
-export const DefaultConfig: Config = {
+export const DefaultConfig = {
   user: "user",
   outDir: ".jet",
   dev: {
-    stage: DefaultDevStage,
     watcher: {
       watch: ["lib/**/*.ts", "lib/**/*.js"],
       ignore: ["node_modules"],

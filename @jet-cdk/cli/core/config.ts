@@ -6,7 +6,13 @@ import json5 from "json5";
 import { Config, DefaultConfigPath, DefaultConfig } from "../../common/config";
 import merge from "deepmerge";
 
-export async function getConfig(path: string | undefined): Promise<Config> {
+type RecursivePartial<T> = {
+  [P in keyof T]?: RecursivePartial<T[P]>;
+};
+export type LoadedConfig = typeof DefaultConfig & RecursivePartial<Config>;
+export async function getConfig(
+  path: string | undefined
+): Promise<LoadedConfig> {
   const loadedConfig = await loadConfig(path);
   return merge(DefaultConfig, loadedConfig);
 }
@@ -26,7 +32,6 @@ async function loadConfig(path: string | undefined): Promise<any> {
     const username = await getUserName();
     const config = {
       user: username,
-      stage: "dev-{user}",
       dev: {
         watcher: DefaultConfig.dev.watcher,
       },

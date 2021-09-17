@@ -1,7 +1,6 @@
 {
   user: "chrisf",
   dev: {
-    stage: "dev-{user}",
     watcher: {
       watch: ["lib/**/*.ts", "lib/**/*.js"],
       ignore: ["node_modules", "jet"],
