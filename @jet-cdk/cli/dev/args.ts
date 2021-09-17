@@ -6,11 +6,10 @@ type Await<T> = T extends Promise<infer U> | infer U ? U : never;
 
 export function setupArgs() {
   return yargs(hideBin(process.argv))
-    .option("env", {
-      alias: "e",
+    .option("stage", {
+      alias: "s",
       type: "string",
-      description:
-        "Environment of the app. Will be prefixed to names of configured stacks",
+      description: "Stage to run against. [dev-{user}]",
     })
     .option("config", {
       alias: "c",
@@ -20,7 +19,7 @@ export function setupArgs() {
     .option("outDir", {
       alias: "o",
       type: "string",
-      description: "Output directory for jet framework data",
+      description: "Output directory for jet data [.jet]",
     })
     .option("synth-args", {
       type: "array",

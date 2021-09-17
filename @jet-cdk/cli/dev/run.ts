@@ -11,7 +11,7 @@ export function runCdk(
 ) {
   const result = child_process.spawnSync(
     "cdk",
-    [command, "-c", "jet=true", "-o", `${jetOutDir}/cdk.out`, ...args],
+    [command, "-c", "jet:dev=true", "-o", `${jetOutDir}/cdk.out`, ...args],
     {
       cwd: cwd,
       //The ternary is necessary due to the nature of npmRunPath's property overwriting

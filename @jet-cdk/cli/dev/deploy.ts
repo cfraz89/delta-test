@@ -1,44 +1,16 @@
-import { FSWatcher } from "chokidar";
-import { Config } from "../common/config";
+import { Config } from "../../common/config";
 import fsp from "fs/promises";
 import fs from "fs";
-import path from "path";
 import { exit } from "process";
 import { runCdk } from "./run";
 import { stackFilter } from "./config";
 import { Stack } from "./types";
-
-async function latestWatchedMtime(watcher: FSWatcher) {
-  return await new Promise<number>((resolve) => {
-    watcher.on("ready", async () => {
-      const watched = watcher.getWatched();
-      const mtimes = await Promise.all(
-        Object.entries(watched).map(
-          async ([dir, files]) =>
-            await Promise.all(
-              files.map(async (file) => {
-                try {
-                  const stat = await fsp.stat(`${dir}${path.sep}${file}`);
-                  return stat.mtimeMs;
-                } catch (e) {
-                  return 0;
-                }
-              })
-            )
-        )
-      );
-      resolve(Math.max(...mtimes.flatMap((t) => t)));
-    });
-  });
-}
-
-export function outFilePath(outDir: string) {
-  return `${outDir}/cdk-outputs.json`;
-}
+import { outFilePath } from "./files";
+import chalk from "chalk";
 
 export async function deployIfNecessary(
   config: Config,
-  watcher: FSWatcher
+  lambaMTime: number
 ): Promise<boolean> {
   let deploy = false;
   const outPath = outFilePath(config.outDir);
@@ -48,7 +20,7 @@ export async function deployIfNecessary(
       deploy = true;
     } else {
       const outStat = await fsp.stat(outPath);
-      if (outStat.mtimeMs < (await latestWatchedMtime(watcher))) {
+      if (outStat.mtimeMs < lambaMTime) {
         console.info("Source file has changed since last deploy");
         deploy = true;
       }
@@ -66,7 +38,11 @@ export async function deployIfNecessary(
   if (deploy) {
     doDeploy(config);
   } else {
-    console.info("Outputs file up to date, skipping initial deploy");
+    console.info(
+      chalk.greenBright(
+        chalk.bgBlack("Outputs file up to date, skipping initial deploy")
+      )
+    );
   }
   return deploy;
 }
@@ -75,7 +51,12 @@ export function doDeploy(config: Config) {
   const outPath = outFilePath(config.outDir);
   return runCdk(
     "deploy",
-    ["-O", outPath, ...config.fly.deployArgs, stackFilter(config)],
+    [
+      "-O",
+      outPath,
+      ...config.dev.deployArgs,
+      stackFilter(config.dev.stage, { user: config.user }),
+    ],
     config.outDir
   );
 }

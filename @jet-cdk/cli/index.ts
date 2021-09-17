@@ -1,28 +1,26 @@
 import fsp from "fs/promises";
 import { watch } from "chokidar";
 import { Config } from "../common/config";
-import { setupArgs } from "./args";
-import { deployIfNecessary, doDeploy } from "./deploy";
-import { processLambdas } from "./lambda";
-import { getConfig } from "./config";
-import { emitKeypressEvents, createInterface } from "readline";
+import { setupArgs } from "./dev/args";
+import { deployIfNecessary, doDeploy } from "./dev/deploy";
+import { lambdasNeedUploading, processLambdas } from "./dev/lambda";
+import { getConfig } from "./dev/config";
+import { emitKeypressEvents } from "readline";
 import merge from "deepmerge";
 import chalk from "chalk";
-import { tailLogs } from "./logs";
+import { latestWatchedMtime } from "./dev/files";
 
 async function main() {
-  const { args, config } = await getInputs();
-  let tailTimeouts: (NodeJS.Timeout | null)[][] = [];
-  const clearTailTimeouts = () =>
-    tailTimeouts.forEach((t) => t.forEach((tx) => tx && clearInterval(tx)));
+  const config = await getMergedConfig();
+  let tailTimeouts: NodeJS.Timeout[] = [];
+  const clearTailTimeouts = () => tailTimeouts.forEach(clearInterval);
 
   fsp.mkdir(config.outDir, { recursive: true });
-  const lambdaWatcher = watch(config.fly.watcher.watch, {
-    ignored: config.fly.watcher.ignore,
+  const lambdaWatcher = watch(config.dev.watcher.watch, {
+    ignored: config.dev.watcher.ignore,
   });
-  const didDeploy = await deployIfNecessary(config, lambdaWatcher);
-  console.info("Watching for source changes.");
-
+  const lambdaMTime = await latestWatchedMtime(lambdaWatcher);
+  const didDeploy = await deployIfNecessary(config, lambdaMTime);
   const refreshLambdas = async (doUpload: boolean) => {
     clearTailTimeouts();
     tailTimeouts = await processLambdas(doUpload, config);
@@ -36,6 +34,7 @@ async function main() {
       (key?.ctrl && key?.name === "c") ||
       (!(key?.ctrl ?? false) && key?.name === "x")
     ) {
+      console.info("Exiting");
       process.exit();
     }
     if (!(key?.ctrl ?? false) && key?.name === "d") {
@@ -50,26 +49,28 @@ async function main() {
     }
   });
   lambdaWatcher.on("change", uploadRefreshLambdas);
-  refreshLambdas(!didDeploy);
+  refreshLambdas(
+    !didDeploy && (await lambdasNeedUploading(config, lambdaMTime))
+  );
 }
 
-async function getInputs() {
+async function getMergedConfig() {
   const args = await setupArgs();
   const c = await getConfig(args.config);
   const config: Config = {
     ...c,
-    env: args.env ?? c.env,
     outDir: args.outDir ?? c.outDir,
-    fly: {
-      ...c.fly,
-      synthArgs: merge(c.fly.synthArgs, (args["synth-args"] as string[]) ?? []),
+    dev: {
+      ...c.dev,
+      stage: args.stage ?? c.dev.stage,
+      synthArgs: merge(c.dev.synthArgs, (args["synth-args"] as string[]) ?? []),
       deployArgs: merge(
-        c.fly.deployArgs,
+        c.dev.deployArgs,
         (args["deploy-args"] as string[]) ?? []
       ),
     },
   };
-  return { args, config };
+  return config;
 }
 
 main();

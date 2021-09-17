@@ -3,7 +3,7 @@ import { cosmiconfig } from "cosmiconfig";
 import fs from "fs/promises";
 import os from "os";
 import json5 from "json5";
-import { Config, DefaultConfigPath, DefaultConfig } from "../common/config";
+import { Config, DefaultConfigPath, DefaultConfig } from "../../common/config";
 import merge from "deepmerge";
 
 export async function getConfig(path: string | undefined): Promise<Config> {
@@ -26,9 +26,9 @@ async function loadConfig(path: string | undefined): Promise<any> {
     const username = await getUserName();
     const config = {
       user: username,
-      env: "dev-{user}",
-      fly: {
-        watcher: DefaultConfig.fly.watcher,
+      stage: "dev-{user}",
+      dev: {
+        watcher: DefaultConfig.dev.watcher,
       },
     };
     await fs.writeFile(
@@ -59,5 +59,5 @@ async function getUserName(): Promise<string> {
   return iamUser ?? os.userInfo().username;
 }
 
-export const stackFilter = (config: Config) =>
-  config.env ? `*/${config.env.replace("{user}", config.user)}/*` : "";
+export const stackFilter = (stage: string, props: { user: string }) =>
+  `*/${stage.replace("{user}", props.user)}/*`;

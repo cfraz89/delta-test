@@ -1,8 +1,8 @@
 export interface Config {
   user: string;
-  env?: string;
   outDir: string;
-  fly: {
+  dev: {
+    stage: string;
     watcher: {
       watch: string[];
       ignore: string[];
@@ -12,11 +12,13 @@ export interface Config {
   };
 }
 
+export const DefaultDevStage = "dev-{user}";
+
 export const DefaultConfig: Config = {
   user: "user",
-  env: "dev-{user}",
   outDir: ".jet",
-  fly: {
+  dev: {
+    stage: DefaultDevStage,
     watcher: {
       watch: ["lib/**/*.ts", "lib/**/*.js"],
       ignore: ["node_modules"],
