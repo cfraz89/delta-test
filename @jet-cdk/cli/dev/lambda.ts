@@ -1,10 +1,9 @@
-import { Config } from "../../common/config";
-import { runCdk } from "../core/run-cdk";
+import { BaseConfigWithUserAndDevStage, Config } from "../../common/config";
+import { outFilePath, runCdk } from "../core/run-cdk";
 import { Lambda } from "@aws-sdk/client-lambda";
 import zip from "jszip";
 import fsp from "fs/promises";
 import { DeployedFunction, JetOutput, Stack, SynthedFunction } from "./types";
-import { outFilePath } from "./files";
 import { tailLogs } from "./logs";
 import { stackFilter } from "../core/config";
 import chalk from "chalk";
@@ -14,24 +13,24 @@ import json5 from "json5";
 const lambda = new Lambda({});
 export async function processLambdas(
   doUpload: boolean,
-  config: Config
+  config: BaseConfigWithUserAndDevStage
 ): Promise<NodeJS.Timeout[]> {
   if (doUpload) {
-    runCdk(
-      "synth",
-      [
+    runCdk("synth", {
+      jetOutDir: config.outDir,
+      context: { dev: "true" },
+      args: [
         ...config.dev.synthArgs,
         stackFilter(config.dev.stage, { user: config.user }),
       ],
-      config.outDir
-    );
+    });
     console.info("\nUploading lambdas...\n");
   } else {
     console.info(
       chalk.greenBright(chalk.bgBlack("Lambdas appear fresh, skipping upload"))
     );
   }
-  const stacks = await getStacks(config);
+  const stacks = await getStacks(config.outDir);
   if (!Object.keys(stacks).length) {
     console.info(chalk.bold("No stacks"));
     usagePrompt();
@@ -145,16 +144,16 @@ async function updateLambda(zip: Uint8Array, fn: DeployedFunction) {
   console.info(response.LastUpdateStatus);
 }
 
-async function getStacks(config: Config): Promise<Record<string, Stack>> {
-  const outputsFile = await fsp.readFile(outFilePath(config.outDir), "utf-8");
+async function getStacks(outDir: string): Promise<Record<string, Stack>> {
+  const outputsFile = await fsp.readFile(outFilePath(outDir), "utf-8");
   return JSON.parse(outputsFile);
 }
 
 export async function lambdasNeedUploading(
-  config: Config,
+  outDir: string,
   lambdaMTime: number
 ): Promise<boolean> {
-  const outPath = outFilePath(config.outDir);
+  const outPath = outFilePath(outDir);
   const outStat = await fsp.stat(outPath);
   return lambdaMTime > outStat.mtimeMs;
 }

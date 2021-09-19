@@ -1,10 +1,6 @@
 import { FSWatcher } from "chokidar";
 import path from "path";
 import fsp from "fs/promises";
-
-export function outFilePath(outDir: string) {
-  return `${outDir}/cdk-outputs.json`;
-}
 export async function latestWatchedMtime(watcher: FSWatcher) {
   return await new Promise<number>((resolve) => {
     watcher.on("ready", async () => {

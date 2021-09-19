@@ -17,6 +17,10 @@ export interface Config {
     synthArgs: string[];
     deployArgs: string[];
   };
+  deploy: {
+    stage: string;
+    deployArgs: string[];
+  };
 }
 
 export const DefaultConfig = {
@@ -27,7 +31,10 @@ export const DefaultConfig = {
       ignore: ["node_modules"],
     },
     synthArgs: ["-q"],
-    deployArgs: [],
+    deployArgs: [] as string[],
+  },
+  deploy: {
+    deployArgs: [] as string[],
   },
 };
 
@@ -37,7 +44,18 @@ export const DefaultConfigPath = "jet.config.json5";
 type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
 };
-export type BaseConfig = typeof DefaultConfig & RecursivePartial<Config>;
+export type BaseConfig = typeof DefaultConfig & {
+  user?: string;
+  dev: { stage?: string };
+  deploy: { stage?: string };
+};
+export type BaseConfigWithUser = BaseConfig & Pick<Config, "user">;
+export type BaseConfigWithUserAndDevStage = BaseConfigWithUser & {
+  dev: { stage: string };
+};
+export type BaseConfigWithUserAndDeployStage = BaseConfigWithUser & {
+  deploy: { stage: string };
+};
 
 /**
  * Load configuration files. Will attempt to load a personal file and a main file.
@@ -61,7 +79,7 @@ export async function loadConfig(
   const mainResult = await (path
     ? mainExplorer.load(path)
     : mainExplorer.search());
-  const result = merge.all<BaseConfig>([
+  const result = merge.all<BaseConfig & { user?: string }>([
     DefaultConfig,
     mainResult?.config ?? {},
     personalResult?.config ?? {},

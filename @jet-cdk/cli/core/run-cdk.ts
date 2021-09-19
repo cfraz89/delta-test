@@ -4,19 +4,32 @@ import npmRunPath from "npm-run-path";
 
 export function runCdk(
   command: string,
-  args: string[],
-  jetOutDir: string,
-  cwd?: string,
-  stdio?: child_process.StdioOptions
+  pars: {
+    jetOutDir: string;
+    context?: Record<string, string>;
+    args?: string[];
+    cwd?: string;
+    stdio?: child_process.StdioOptions;
+  }
 ) {
+  const contextArr = Object.values(pars.context ?? {}).flatMap(([k, v]) => [
+    "-c",
+    `jet:${k}=${v}`,
+  ]);
   const result = child_process.spawnSync(
     "cdk",
-    [command, "-c", "jet:dev=true", "-o", `${jetOutDir}/cdk.out`, ...args],
+    [
+      command,
+      ...contextArr,
+      "-o",
+      `${pars.jetOutDir}/cdk.out`,
+      ...(pars.args ?? []),
+    ],
     {
-      cwd: cwd,
+      cwd: pars.cwd,
       //The ternary is necessary due to the nature of npmRunPath's property overwriting
-      env: npmRunPath.env(cwd ? { cwd } : undefined),
-      stdio: stdio ?? "inherit",
+      env: npmRunPath.env(pars.cwd ? { cwd: pars.cwd } : undefined),
+      stdio: pars.stdio ?? "inherit",
     }
   );
   if (result.status) {
@@ -26,4 +39,8 @@ export function runCdk(
     process.exit(1);
   }
   return result;
+}
+
+export function outFilePath(outDir: string) {
+  return `${outDir}/cdk-outputs.json`;
 }

@@ -21,6 +21,17 @@ export function setupArgs() {
           description: "Extra arguments to cdk deploy",
         });
     })
+    .command("deploy [stage]", "Deploy a stage", (yargs) => {
+      return yargs
+        .positional("stage", {
+          type: "string",
+          description: "Stage to use for development",
+        })
+        .option("deploy-args", {
+          type: "array",
+          description: "Extra arguments to cdk deploy",
+        });
+    })
     .command("list-stages", "List detected stages")
     .option("config", {
       alias: "c",

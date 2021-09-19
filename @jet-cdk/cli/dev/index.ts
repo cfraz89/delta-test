@@ -1,6 +1,9 @@
 import fsp from "fs/promises";
 import { watch } from "chokidar";
-import { Config } from "../../common/config";
+import {
+  BaseConfigWithUser,
+  BaseConfigWithUserAndDevStage,
+} from "../../common/config";
 import { deployIfNecessary, doDeploy } from "./deploy";
 import { lambdasNeedUploading, processLambdas } from "./lambda";
 import { emitKeypressEvents } from "readline";
@@ -11,7 +14,7 @@ import { latestWatchedMtime } from "./files";
  * Dev mode runner. Loops a monitor for files, when one changes,
  * Reuploads lambdas.
  */
-export async function runDev(config: Config) {
+export async function runDev(config: BaseConfigWithUserAndDevStage) {
   let tailTimeouts: NodeJS.Timeout[] = [];
   const clearTailTimeouts = () => tailTimeouts.forEach(clearInterval);
   fsp.mkdir(config.outDir, { recursive: true });
@@ -53,6 +56,6 @@ export async function runDev(config: Config) {
   });
   lambdaWatcher.on("change", uploadRefreshLambdas);
   refreshLambdas(
-    !didDeploy && (await lambdasNeedUploading(config, lambdaMTime))
+    !didDeploy && (await lambdasNeedUploading(config.outDir, lambdaMTime))
   );
 }

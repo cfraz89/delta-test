@@ -1,15 +1,14 @@
-import { Config } from "../../common/config";
+import { BaseConfigWithUserAndDevStage, Config } from "../../common/config";
 import fsp from "fs/promises";
 import fs from "fs";
 import { exit } from "process";
-import { runCdk } from "../core/run-cdk";
+import { outFilePath, runCdk } from "../core/run-cdk";
 import { stackFilter } from "../core/config";
 import { Stack } from "./types";
-import { outFilePath } from "./files";
 import chalk from "chalk";
 
 export async function deployIfNecessary(
-  config: Config,
+  config: BaseConfigWithUserAndDevStage,
   lambaMTime: number
 ): Promise<boolean> {
   let deploy = false;
@@ -47,16 +46,16 @@ export async function deployIfNecessary(
   return deploy;
 }
 
-export function doDeploy(config: Config) {
+export function doDeploy(config: BaseConfigWithUserAndDevStage) {
   const outPath = outFilePath(config.outDir);
-  return runCdk(
-    "deploy",
-    [
+  return runCdk("deploy", {
+    jetOutDir: config.outDir,
+    context: { dev: "true" },
+    args: [
       "-O",
       outPath,
       ...config.dev.deployArgs,
       stackFilter(config.dev.stage, { user: config.user }),
     ],
-    config.outDir
-  );
+  });
 }
