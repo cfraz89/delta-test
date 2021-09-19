@@ -1,11 +1,11 @@
-import { BaseConfigWithUserAndDevStage, Config } from "../../common/config";
-import { outFilePath, runCdk } from "../core/run-cdk";
+import { BaseConfigWithUserAndDevStage, Config } from "../../../common/config";
+import { outFilePath, runCdk } from "../../core/run-cdk";
 import { Lambda } from "@aws-sdk/client-lambda";
 import zip from "jszip";
 import fsp from "fs/promises";
 import { DeployedFunction, JetOutput, Stack, SynthedFunction } from "./types";
 import { tailLogs } from "./logs";
-import { stackFilter } from "../core/config";
+import { stackFilter } from "../../core/config";
 import chalk from "chalk";
 import { usagePrompt } from "./prompt";
 import json5 from "json5";

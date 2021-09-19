@@ -1,5 +1,4 @@
 import { CloudWatchLogs } from "@aws-sdk/client-cloudwatch-logs";
-import chalk from "chalk";
 import { usagePrompt } from "./prompt";
 import { DeployedFunction } from "./types";
 

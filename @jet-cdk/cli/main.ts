@@ -1,16 +1,11 @@
-import {
-  BaseConfig,
-  BaseConfigWithUser,
-  Config,
-  loadConfig,
-} from "../common/config";
-import { Args, setupArgs } from "./core/args";
+import { BaseConfigWithUser, loadConfig } from "../common/config";
+import { Args } from "./core/args";
 import merge from "deepmerge";
 import cleanDeep from "clean-deep";
 import chalk from "chalk";
-import { listStages } from "./list-stages";
-import { runDev } from "./dev";
-import { runDeploy } from "./deploy";
+import { listStages } from "./commands/list-stages";
+import { runDev } from "./commands/dev";
+import { runDeploy } from "./commands/deploy";
 
 export async function main(args: Args) {
   const config = await getMergedConfig(args);

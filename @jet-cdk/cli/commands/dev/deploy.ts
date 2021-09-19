@@ -1,9 +1,9 @@
-import { BaseConfigWithUserAndDevStage, Config } from "../../common/config";
+import { BaseConfigWithUserAndDevStage, Config } from "../../../common/config";
 import fsp from "fs/promises";
 import fs from "fs";
 import { exit } from "process";
-import { outFilePath, runCdk } from "../core/run-cdk";
-import { stackFilter } from "../core/config";
+import { outFilePath, runCdk } from "../../core/run-cdk";
+import { stackFilter } from "../../core/config";
 import { Stack } from "./types";
 import chalk from "chalk";
 

@@ -1,6 +1,6 @@
-import { BaseConfigWithUserAndDeployStage } from "../common/config";
-import { stackFilter } from "./core/config";
-import { outFilePath, runCdk } from "./core/run-cdk";
+import { BaseConfigWithUserAndDeployStage } from "../../common/config";
+import { stackFilter } from "../core/config";
+import { outFilePath, runCdk } from "../core/run-cdk";
 
 export function runDeploy(config: BaseConfigWithUserAndDeployStage) {
   return runCdk("deploy", {

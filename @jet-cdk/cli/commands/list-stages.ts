@@ -1,5 +1,5 @@
-import { Config } from "../common/config";
-import { runCdk } from "./core/run-cdk";
+import { Config } from "../../common/config";
+import { runCdk } from "../core/run-cdk";
 
 export function listStages(outDir: string, user: string) {
   return runCdk("list", {

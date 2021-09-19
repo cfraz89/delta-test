@@ -3,7 +3,7 @@ import { watch } from "chokidar";
 import {
   BaseConfigWithUser,
   BaseConfigWithUserAndDevStage,
-} from "../../common/config";
+} from "../../../common/config";
 import { deployIfNecessary, doDeploy } from "./deploy";
 import { lambdasNeedUploading, processLambdas } from "./lambda";
 import { emitKeypressEvents } from "readline";
