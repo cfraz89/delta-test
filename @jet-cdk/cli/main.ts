@@ -1,4 +1,8 @@
-import { BaseConfigWithUser, loadConfig } from "../common/config";
+import {
+  BaseConfigWithUser,
+  BaseConfigWithUserAndCommandStage,
+  loadConfig,
+} from "../common/config";
 import { Args } from "./core/args";
 import merge from "deepmerge";
 import cleanDeep from "clean-deep";
@@ -57,18 +61,18 @@ async function getMergedConfig(args: Args): Promise<BaseConfigWithUser> {
     },
     { undefinedValues: true }
   );
-  return merge(c, argsConfig);
+  return merge<BaseConfigWithUser, typeof argsConfig>(c, argsConfig);
 }
 
 function checkDevStage(
   config: BaseConfigWithUser
-): config is BaseConfigWithUser & { dev: { stage: string } } {
+): config is BaseConfigWithUserAndCommandStage<"dev"> {
   return verifyStage(config, config.dev.stage);
 }
 
 function checkDeployStage(
   config: BaseConfigWithUser
-): config is BaseConfigWithUser & { deploy: { stage: string } } {
+): config is BaseConfigWithUserAndCommandStage<"deploy"> {
   return verifyStage(config, config.deploy.stage);
 }
 

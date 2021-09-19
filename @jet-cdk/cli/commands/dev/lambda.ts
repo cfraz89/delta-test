@@ -1,4 +1,4 @@
-import { BaseConfigWithUserAndDevStage, Config } from "../../../common/config";
+import { BaseConfigWithUserAndCommandStage } from "../../../common/config";
 import { outFilePath, runCdk } from "../../core/run-cdk";
 import { Lambda } from "@aws-sdk/client-lambda";
 import zip from "jszip";
@@ -13,7 +13,7 @@ import json5 from "json5";
 const lambda = new Lambda({});
 export async function processLambdas(
   doUpload: boolean,
-  config: BaseConfigWithUserAndDevStage
+  config: BaseConfigWithUserAndCommandStage<"dev">
 ): Promise<NodeJS.Timeout[]> {
   if (doUpload) {
     runCdk("synth", {

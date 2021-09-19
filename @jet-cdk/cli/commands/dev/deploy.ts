@@ -1,4 +1,4 @@
-import { BaseConfigWithUserAndDevStage, Config } from "../../../common/config";
+import { BaseConfigWithUserAndCommandStage } from "../../../common/config";
 import fsp from "fs/promises";
 import fs from "fs";
 import { exit } from "process";
@@ -8,7 +8,7 @@ import { Stack } from "./types";
 import chalk from "chalk";
 
 export async function deployIfNecessary(
-  config: BaseConfigWithUserAndDevStage,
+  config: BaseConfigWithUserAndCommandStage<"dev">,
   lambaMTime: number
 ): Promise<boolean> {
   let deploy = false;
@@ -46,7 +46,7 @@ export async function deployIfNecessary(
   return deploy;
 }
 
-export function doDeploy(config: BaseConfigWithUserAndDevStage) {
+export function doDeploy(config: BaseConfigWithUserAndCommandStage<"dev">) {
   const outPath = outFilePath(config.outDir);
   return runCdk("deploy", {
     jetOutDir: config.outDir,

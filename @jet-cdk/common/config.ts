@@ -5,27 +5,12 @@ import merge from "deepmerge";
 import fs from "fs/promises";
 import { STS } from "@aws-sdk/client-sts";
 import os from "os";
-export interface Config {
-  user: string;
-  outDir: string;
-  dev: {
-    stage: string;
-    watcher: {
-      watch: string[];
-      ignore: string[];
-    };
-    synthArgs: string[];
-    deployArgs: string[];
-  };
-  deploy: {
-    stage: string;
-    deployArgs: string[];
-  };
-}
 
 export const DefaultConfig = {
+  user: undefined as string | undefined,
   outDir: ".jet",
   dev: {
+    stage: undefined as string | undefined,
     watcher: {
       watch: ["lib/**/*"],
       ignore: ["node_modules"],
@@ -34,6 +19,7 @@ export const DefaultConfig = {
     deployArgs: [] as string[],
   },
   deploy: {
+    stage: undefined as string | undefined,
     deployArgs: [] as string[],
   },
 };
@@ -41,21 +27,10 @@ export const DefaultConfig = {
 export const DefaultUserConfigPath = ".jetrc.json5";
 export const DefaultConfigPath = "jet.config.json5";
 
-type RecursivePartial<T> = {
-  [P in keyof T]?: RecursivePartial<T[P]>;
-};
-export type BaseConfig = typeof DefaultConfig & {
-  user?: string;
-  dev: { stage?: string };
-  deploy: { stage?: string };
-};
-export type BaseConfigWithUser = BaseConfig & Pick<Config, "user">;
-export type BaseConfigWithUserAndDevStage = BaseConfigWithUser & {
-  dev: { stage: string };
-};
-export type BaseConfigWithUserAndDeployStage = BaseConfigWithUser & {
-  deploy: { stage: string };
-};
+export type BaseConfig = typeof DefaultConfig;
+export type BaseConfigWithUser = BaseConfig & { user: string };
+export type BaseConfigWithUserAndCommandStage<T extends string> =
+  BaseConfigWithUser & Record<T, { stage: string }>;
 
 /**
  * Load configuration files. Will attempt to load a personal file and a main file.
@@ -64,7 +39,7 @@ export type BaseConfigWithUserAndDeployStage = BaseConfigWithUser & {
  */
 export async function loadConfig(
   path: string | undefined
-): Promise<BaseConfig & Pick<Config, "user">> {
+): Promise<BaseConfigWithUser> {
   const loaders: LoadersSync = {
     ".json5": (_path, content) => json5.parse(content),
   };
@@ -79,7 +54,7 @@ export async function loadConfig(
   const mainResult = await (path
     ? mainExplorer.load(path)
     : mainExplorer.search());
-  const result = merge.all<BaseConfig & { user?: string }>([
+  const result = merge.all<BaseConfig>([
     DefaultConfig,
     mainResult?.config ?? {},
     personalResult?.config ?? {},
@@ -90,7 +65,7 @@ export async function loadConfig(
 export async function checkUser(
   config: BaseConfig,
   path: string | undefined
-): Promise<BaseConfig & Pick<Config, "user">> {
+): Promise<BaseConfigWithUser> {
   if (!config.user) {
     console.log(
       "No user detected in config. Creating a personal config using IAM or OS username."
@@ -103,9 +78,9 @@ export async function checkUser(
       path ?? DefaultUserConfigPath,
       json5.stringify(userConfig, undefined, 2)
     );
-    return merge<BaseConfig, Pick<Config, "user">>(config, userConfig);
+    return merge<BaseConfig, typeof userConfig>(config, userConfig);
   }
-  return config as BaseConfig & Pick<Config, "user">;
+  return config as BaseConfigWithUser;
 }
 
 /**
