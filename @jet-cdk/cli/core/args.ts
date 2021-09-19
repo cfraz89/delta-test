@@ -1,11 +1,19 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-export type Args = Await<ReturnType<typeof setupArgs>>;
-type Await<T> = T extends Promise<infer U> | infer U ? U : never;
+export type Command = "dev" | "deploy" | "list-stages";
 
-export function setupArgs() {
-  return yargs(hideBin(process.argv))
+export type Args = {
+  command?: Command;
+  stage?: string;
+  synthArgs?: string[];
+  deployArgs?: string[];
+  config?: string;
+  outDir?: string;
+};
+
+export async function setupArgs(): Promise<Args> {
+  const args = await yargs(hideBin(process.argv))
     .command("dev [stage]", "Start development mode", (yargs) => {
       return yargs
         .positional("stage", {
@@ -38,9 +46,18 @@ export function setupArgs() {
       type: "string",
       description: "Configuration file to read from",
     })
-    .option("outDir", {
+    .option("out-dir", {
       alias: "o",
       type: "string",
       description: "Output directory for jet data [.jet]",
     }).argv;
+
+  return {
+    command: args._[0] as Command,
+    stage: args.stage,
+    synthArgs: args["synth-args"] as string[],
+    deployArgs: args["deploy-args"] as string[],
+    config: args.config,
+    outDir: args["out-dir"],
+  };
 }
