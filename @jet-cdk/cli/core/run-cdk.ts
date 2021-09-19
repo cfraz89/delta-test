@@ -12,7 +12,7 @@ export function runCdk(
     stdio?: child_process.StdioOptions;
   }
 ) {
-  const contextArr = Object.values(pars.context ?? {}).flatMap(([k, v]) => [
+  const contextArr = Object.entries(pars.context ?? {}).flatMap(([k, v]) => [
     "-c",
     `jet:${k}=${v}`,
   ]);
