@@ -7,12 +7,14 @@ import {
 } from "@aws-cdk/aws-apigatewayv2";
 import { LambdaProxyIntegration } from "@aws-cdk/aws-apigatewayv2-integrations";
 import { Construct } from "@aws-cdk/core";
+import { lambdaFunction, LambdaFunctionConstructor } from "./function/lambda";
 import { nodeFunction, NodeFunctionConstructor } from "./function/node";
 
 export type RouteOptions = Omit<AddRoutesOptions, "path" | "methods">;
 export type Method = keyof typeof HttpMethod;
 export type MethodHandler =
   | { node: NodeFunctionConstructor }
+  | { lambda: LambdaFunctionConstructor }
   | IHttpRouteIntegration
   | RouteOptions;
 export type RouteHandler = Partial<Record<Method, MethodHandler>>;
@@ -56,6 +58,14 @@ function addRoutesOptions(
       methods: [HttpMethod[method]],
       integration: new LambdaProxyIntegration({
         handler: nodeFunction(scope, path, handler.node),
+      }),
+    };
+  } else if ("lambda" in handler) {
+    return {
+      path,
+      methods: [HttpMethod[method]],
+      integration: new LambdaProxyIntegration({
+        handler: lambdaFunction(scope, path, handler.lambda),
       }),
     };
   } else {
