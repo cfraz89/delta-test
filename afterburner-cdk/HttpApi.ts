@@ -3,69 +3,59 @@ import {
   HttpApi,
   HttpMethod,
   HttpRoute,
+  IHttpRouteIntegration,
 } from "@aws-cdk/aws-apigatewayv2";
-import {
-  LambdaProxyIntegration,
-  LambdaProxyIntegrationProps,
-} from "@aws-cdk/aws-apigatewayv2-integrations";
-import { IFunction } from "@aws-cdk/aws-lambda";
-import { FnConstructor, makeFn } from "./function";
+import { LambdaProxyIntegration } from "@aws-cdk/aws-apigatewayv2-integrations";
+import { Construct } from "@aws-cdk/core";
+import { makeFn } from "./function";
 
-export interface RouteParams {
-  methods?: [HttpMethod];
-  handler: FnConstructor;
-  options?: RouteOptions;
-}
+export type RouteOptions = Omit<AddRoutesOptions, "path" | "methods">;
+export type Method = keyof typeof HttpMethod;
+export type MethodHandler = string | IHttpRouteIntegration | RouteOptions;
+export type RouteHandler = Partial<Record<Method, MethodHandler>>;
 
-export interface RouteOptions {
-  route?: AddRoutesOptions;
-  lambdaProxyIntegration?: LambdaProxyIntegrationProps;
-}
-
-export type HttpRouteHandler = {
-  handler: IFunction;
-  routes: HttpRoute[];
-};
-export function route(
-  api: HttpApi,
-  routes: Record<string, string | RouteParams | RouteParams[]>
-) {
-  const handlers = Object.entries(routes).map(
-    ([path, r]): [string, HttpRouteHandler[]] => {
-      const routeParams = extractRouteParams(r);
-      return [
+export function route(api: HttpApi, routes: Record<string, RouteHandler>) {
+  const handlers: Record<string, Partial<Record<Method, HttpRoute>>> = {};
+  Object.entries(routes).forEach(([path, routeHandler]) =>
+    Object.entries(routeHandler).forEach(([method, methodHandler]) => {
+      const options = addRoutesOptions(
+        api.stack,
         path,
-        routeParams.map((rp) => {
-          const handler = makeFn(api.stack, path, rp.handler);
-          return {
-            handler,
-            routes: api.addRoutes({
-              methods: rp.methods,
-              path: path,
-              integration: new LambdaProxyIntegration({
-                handler,
-                ...rp.options?.lambdaProxyIntegration,
-              }),
-              ...rp.options?.route,
-            }),
-          };
-        }),
-      ];
-    }
+        method as Method,
+        methodHandler
+      );
+      const handler = api.addRoutes(options)[0];
+      if (handlers[path]) {
+        handlers[path][method as Method] = handler;
+      } else {
+        handlers[path] = { [method]: handler };
+      }
+    })
   );
-  return Object.fromEntries(handlers);
+  return handlers;
 }
 
-function isRouteParams(r: any): r is RouteParams {
-  return Object.keys(r).includes("handler");
+function isRouteOptions(r: MethodHandler): r is RouteOptions {
+  return typeof r === "object" && "handler" in r;
 }
 
-function extractRouteParams(
-  r: string | RouteParams | RouteParams[]
-): RouteParams[] {
-  if (typeof r === "string") {
-    return [{ handler: r }];
+function addRoutesOptions(
+  scope: Construct,
+  path: string,
+  method: Method,
+  handler: MethodHandler
+): AddRoutesOptions {
+  if (isRouteOptions(handler)) {
+    return { path, methods: [HttpMethod[method]], ...handler };
+  } else if (typeof handler === "string") {
+    return {
+      path,
+      methods: [HttpMethod[method]],
+      integration: new LambdaProxyIntegration({
+        handler: makeFn(scope, path, handler),
+      }),
+    };
   } else {
-    return isRouteParams(r) ? [r] : r;
+    return { path, methods: [HttpMethod[method]], integration: handler };
   }
 }
