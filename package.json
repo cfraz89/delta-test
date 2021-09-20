@@ -11,10 +11,10 @@
     "cdk": "cdk"
   },
   "devDependencies": {
-    "@aws-cdk/assert": "1.121.0",
-    "@aws-cdk/aws-apigatewayv2": "^1.121.0",
-    "@aws-cdk/aws-apigatewayv2-integrations": "^1.121.0",
-    "@aws-cdk/aws-lambda-nodejs": "^1.121.0",
+    "@aws-cdk/assert": "1.123.0",
+    "@aws-cdk/aws-apigatewayv2": "^1.123.0",
+    "@aws-cdk/aws-apigatewayv2-integrations": "^1.123.0",
+    "@aws-cdk/aws-lambda-nodejs": "^1.123.0",
     "@aws-sdk/client-cloudwatch-logs": "^3.30.0",
     "@aws-sdk/client-iam": "^3.30.0",
     "@aws-sdk/client-lambda": "^3.29.0",
@@ -38,7 +38,8 @@
     "yargs": "^17.1.1"
   },
   "dependencies": {
-    "@aws-cdk/core": "1.121.0",
+    "@aws-cdk/aws-appsync": "^1.123.0",
+    "@aws-cdk/core": "1.123.0",
     "chalk": "^4.1.2",
     "clean-deep": "^3.4.0",
     "cowsay2": "^2.0.4",

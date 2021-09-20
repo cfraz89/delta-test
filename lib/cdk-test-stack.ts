@@ -6,9 +6,9 @@ export class CdkTestStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const api = new HttpApi(this, "myapi", {});
+    const api = new HttpApi(this, "myapi");
     route(api, {
-      "/test": { GET: "lib/lambda-test.ts" },
+      "/test": { GET: { node: "lib/lambda-test.ts" } },
     });
     new CfnOutput(this, "api", { value: api.apiEndpoint });
   }

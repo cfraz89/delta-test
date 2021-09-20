@@ -4,18 +4,19 @@ import {
 } from "@aws-cdk/aws-lambda-nodejs";
 import { Construct } from "@aws-cdk/core";
 import { IFunction } from "@aws-cdk/aws-lambda";
+import { isIFunction, noExt, toId } from "./lib";
 
-export type FnConstructor = string | NodejsFunctionProps | IFunction;
-export function makeFn(
+export type NodeFunctionConstructor = string | NodejsFunctionProps | IFunction;
+export function nodeFunction(
   scope: Construct,
   path: string,
-  constructor: FnConstructor
+  constructor: NodeFunctionConstructor
 ): IFunction {
   if (typeof constructor === "string") {
     return new NodejsFunction(scope, toId(`${path}-${noExt(constructor)}`), {
       entry: constructor,
     });
-  } else if (isFn(constructor)) {
+  } else if (isIFunction(constructor)) {
     return constructor;
   } else {
     return new NodejsFunction(
@@ -32,16 +33,4 @@ export function makeFn(
       constructor
     );
   }
-}
-
-function isFn(handler: any): handler is IFunction {
-  return Object.keys(handler).includes("functionArn");
-}
-
-function noExt(handler: string): string {
-  return handler.replace(/\..*$/g, "");
-}
-
-function toId(path: string): string {
-  return path.replace(/[\/\-{}$%#&]/g, "-").replace(/^-/g, "");
 }
