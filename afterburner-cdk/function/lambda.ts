@@ -18,3 +18,9 @@ export function lambdaFunction(
     );
   }
 }
+
+export function lambda(
+  constructor: LambdaFunctionConstructor
+): (scope: Construct, path: string) => IFunction {
+  return (scope, path) => lambdaFunction(scope, path, constructor);
+}

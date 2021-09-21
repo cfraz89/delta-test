@@ -6,17 +6,12 @@ import {
   IHttpRouteIntegration,
 } from "@aws-cdk/aws-apigatewayv2";
 import { LambdaProxyIntegration } from "@aws-cdk/aws-apigatewayv2-integrations";
-import { Construct } from "@aws-cdk/core";
-import { lambdaFunction, LambdaFunctionConstructor } from "./function/lambda";
-import { nodeFunction, NodeFunctionConstructor } from "./function/node";
+import { Stack } from "@aws-cdk/core";
+import { IFunction } from "@aws-cdk/aws-lambda";
 
 export type RouteOptions = Omit<AddRoutesOptions, "path" | "methods">;
 export type Method = keyof typeof HttpMethod;
-export type MethodHandler =
-  | { node: NodeFunctionConstructor }
-  | { lambda: LambdaFunctionConstructor }
-  | IHttpRouteIntegration
-  | RouteOptions;
+export type MethodHandler = IHttpRouteIntegration | RouteOptions;
 export type RouteHandler = Partial<Record<Method, MethodHandler>>;
 
 export function route(api: HttpApi, routes: Record<string, RouteHandler>) {
@@ -45,30 +40,20 @@ function isRouteOptions(r: MethodHandler): r is RouteOptions {
 }
 
 function addRoutesOptions(
-  scope: Construct,
+  stack: Stack,
   path: string,
   method: Method,
   handler: MethodHandler
 ): AddRoutesOptions {
   if (isRouteOptions(handler)) {
     return { path, methods: [HttpMethod[method]], ...handler };
-  } else if ("node" in handler) {
-    return {
-      path,
-      methods: [HttpMethod[method]],
-      integration: new LambdaProxyIntegration({
-        handler: nodeFunction(scope, path, handler.node),
-      }),
-    };
-  } else if ("lambda" in handler) {
-    return {
-      path,
-      methods: [HttpMethod[method]],
-      integration: new LambdaProxyIntegration({
-        handler: lambdaFunction(scope, path, handler.lambda),
-      }),
-    };
-  } else {
-    return { path, methods: [HttpMethod[method]], integration: handler };
   }
+  return { path, methods: [HttpMethod[method]], integration: handler };
+}
+
+export function lambda(
+  integration: (stack: Stack, path: string) => IFunction
+): (stack: Stack, path: string) => LambdaProxyIntegration {
+  return (stack, path) =>
+    new LambdaProxyIntegration({ handler: integration(stack, path) });
 }

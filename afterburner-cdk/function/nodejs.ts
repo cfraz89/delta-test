@@ -7,7 +7,7 @@ import { IFunction } from "@aws-cdk/aws-lambda";
 import { isIFunction, noExt, toId } from "./lib";
 
 export type NodeFunctionConstructor = string | NodejsFunctionProps | IFunction;
-export function nodeFunction(
+export function nodejsFunction(
   scope: Construct,
   path: string,
   constructor: NodeFunctionConstructor
@@ -33,4 +33,10 @@ export function nodeFunction(
       constructor
     );
   }
+}
+
+export function nodejs(
+  constructor: NodeFunctionConstructor
+): (scope: Construct, path: string) => IFunction {
+  return (scope, path) => nodejsFunction(scope, path, constructor);
 }
