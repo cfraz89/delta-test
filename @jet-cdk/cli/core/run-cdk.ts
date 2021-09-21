@@ -33,6 +33,7 @@ export function runCdk(
     }
   );
   if (result.status) {
+    console.error(result.output.toString());
     console.error(
       chalk.redBright(chalk.bgBlack("Problem running cdk, ejecting!"))
     );
